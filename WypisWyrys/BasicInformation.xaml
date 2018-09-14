@@ -1,0 +1,58 @@
+﻿<UserControl x:Class="WypisWyrys.BasicInformationView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"   
+             xmlns:ui="clr-namespace:WypisWyrys"
+             xmlns:extensions="clr-namespace:ArcGIS.Desktop.Extensions;assembly=ArcGIS.Desktop.Extensions"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300"
+             d:DataContext="{Binding Path=ui.BasicInformationViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <extensions:DesignOnlyResourceDictionary Source="pack://application:,,,/ArcGIS.Desktop.Framework;component\Themes\Default.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <DockPanel Grid.Row="0" LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Height="30">
+            <Label>Znak sprawy</Label>
+            <TextBox Height="30px" Width="200px" HorizontalAlignment="Right" Name="caseSign"></TextBox>
+        </DockPanel>
+        <DockPanel Grid.Row="1" LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Height="30" Margin="0,0,0,240">
+            <Label>Miejscowość</Label>
+            <TextBox Height="30px" Width="200px" HorizontalAlignment="Right" Name="location"></TextBox>
+        </DockPanel>
+        <DockPanel Grid.Row="2" LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Height="30" Margin="0,30,0,210">
+            <Label>Gmina</Label>
+            <TextBox Height="30px" Width="200px" HorizontalAlignment="Right" Name="community"></TextBox>
+        </DockPanel>
+        <DockPanel Grid.Row="3" LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Height="30" Margin="0,60,0,180">
+            <Label>Data utworzenia</Label>
+            <DatePicker Text="Wybierz datę" Name="date"/>
+        </DockPanel>
+        <DockPanel Grid.Row="4" LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Height="30" Margin="0,90,0,150">
+            <Label>Data wpłynięcia</Label>
+            <DatePicker Text="Wybierz datę" Name="receiveDate"/>
+        </DockPanel>
+        <DockPanel Grid.Row="5" LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Height="30" Margin="0,120">
+            <Label>Kwota</Label>
+            <TextBox Height="30px" Width="200px" HorizontalAlignment="Right" Name="price"></TextBox>
+        </DockPanel>
+        <DockPanel Grid.Row="6" LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Height="30" Margin="0,150,0,90">
+            <Label>Kwota słownie</Label>
+            <TextBox Height="30px" Width="200px" HorizontalAlignment="Right" Name="price2"></TextBox>
+        </DockPanel>
+        <DockPanel Grid.Row="7" Margin="0,180,0,60" Height="30px">
+            <Button Click="goBack">Wstecz</Button>
+            <Button Click="generateCertificate">Zaświadczenie</Button>
+            <Button Click="generateDocument">Wypis i wyrys</Button>
+        </DockPanel>
+    </Grid>
+</UserControl>

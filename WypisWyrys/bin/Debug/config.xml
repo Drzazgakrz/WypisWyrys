@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <MPZP>
+    <MPZPlayer>granica_MPZP_Janow</MPZPlayer>
+    <MPZPId>OBJECTID</MPZPId>
+    <MPZPResolution>nr_uchwaly</MPZPResolution>
+    <MPZPDiaryName>dziennik_w</MPZPDiaryName>
+    <MPZPLegend>legenda</MPZPLegend>
+    <MPZPName>nazwa</MPZPName>
+  </MPZP>
+  <Działki>
+    <parcelsId>IDENTYFIKA</parcelsId>
+    <parcelsLayer>Uchwala_XLIX_315_14_dzialki</parcelsLayer>
+  </Działki>
+  <Wydzielenia>
+    <precintLayer>Uchwala_XLIX_315_14_wydzielenia</precintLayer>
+    <precintSymbol>plan_symbo</precintSymbol>
+    <precintDestination>przeznaczenie</precintDestination>
+    <precintResolution>uchwala</precintResolution>
+    <precintDetails>ustalenia</precintDetails>
+  </Wydzielenia>
+  <Obręby>
+    <areaLayer>obreby_Janow</areaLayer>
+    <areaId>OBJECTID_1</areaId>
+    <areaName>nazwa_obre</areaName>
+  </Obręby>
+  <paths>
+    <documentPath>C:\Users\szkolenie\Desktop\WypisWyrys_ArcGIS\wypis_wyrys _v2\przykladowe-szablony\szablon_wyrysu_wypisu.rtf</documentPath>
+    <certificatePath>C:\Users\szkolenie\Desktop\WypisWyrys_ArcGIS\wypis_wyrys _v2\przykladowe-szablony\szablon_zaswiadczenia.rtf</certificatePath>
+    <certificateFooterPath>C:\Users\szkolenie\Desktop\WypisWyrys_ArcGIS\wypis_wyrys _v2\przykladowe-szablony\szablon_stopki.rtf</certificateFooterPath>
+    <documentFooterPath>C:\Users\szkolenie\Desktop\WypisWyrys_ArcGIS\wypis_wyrys _v2\przykladowe-szablony\szablon_stopki.rtf</documentFooterPath>
+  </paths>
+</root>
