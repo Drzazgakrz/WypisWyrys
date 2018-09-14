@@ -387,21 +387,17 @@ namespace WypisWyrys
                                 points.Add(point);
                             }
                         }
+
                         Task t = QueuedTask.Run(() =>
                         {
-                            Thread t1 = new Thread(() =>
-                            {
-                                ArcGIS.Core.Geometry.Polygon polygon = PolygonBuilder.CreatePolygon(points);
-                                MapView.Active.ZoomTo(polygon);
-                            });
-                            t1.Start();
-                            if (!t1.Join(TimeSpan.FromSeconds(5)))
-                            {
-                                t1.Abort();
-
-                            }
+                            ArcGIS.Core.Geometry.Polygon polygon = PolygonBuilder.CreatePolygon(points);
+                            MapView.Active.ZoomTo(polygon);
+                            
                         });
-                        t.Wait();       
+                        t.Wait();
+
+                        Thread.Sleep(20000);
+
                         string buffer = File.ReadAllText("document.rtf");
                         string editedFile = editDocument(buffer);
                         string footer = File.ReadAllText("documentFooter.rtf");
