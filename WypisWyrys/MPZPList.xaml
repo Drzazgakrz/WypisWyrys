@@ -8,7 +8,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300"
              d:DataContext="{Binding Path=ui.Step2ViewModel}">
-     <UserControl.Resources>
+    <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <extensions:DesignOnlyResourceDictionary Source="pack://application:,,,/ArcGIS.Desktop.Framework;component\Themes\Default.xaml"/>
@@ -22,11 +22,13 @@
         </Grid.RowDefinitions>
 
         <DockPanel Grid.Row="0" LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Height="30">
-            <Image Source="Images/arrow.png"/>
-            <TextBox Width="200" Name="parcelName" IsReadOnly="True"></TextBox>
-            <TextBox Width="70" Name="resolutionNumber" IsReadOnly="True"></TextBox>
+            <TextBox Width="200" Name="parcelName" IsReadOnly="True" Text="Nazwa MPZP"></TextBox>
+            <TextBox Width="70" Name="resolutionNumber" IsReadOnly="True" Text="Uchwała"></TextBox>
         </DockPanel>
-        <Button Width="100px" Height="30px" Margin="200,240,0,0" Grid.Row="1" Click="nextPane">Dalej</Button>
-        <Button Width="100px" Height="30px" Margin="100,240,100,0" Grid.Row="1" Click="goBack">Wstecz</Button>
+        <DockPanel Margin="0,0,0,20" Grid.Row="1">
+            <ListBox x:Name="primaryNavigator"
+               ItemsSource="{Binding PrimaryMenuList}" Height="250"/>
+        </DockPanel>
+        <Button Width="100px" Height ="30" Margin="100,250,100,0" Grid.Row="1" Click="goBack">Wstecz</Button>
     </Grid>
 </UserControl>

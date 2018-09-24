@@ -37,21 +37,15 @@ namespace WypisWyrys
         public static bool isDockpaneActive { get; set; } = false;
         private FeatureLayer parcellayer;
         private QueryFilter parcelQuery;
-        private KeyValuePair<BasicFeatureLayer, List<long>> layer;
-        private KeyValuePair<BasicFeatureLayer, List<long>> mpzp;
-        private KeyValuePair<BasicFeatureLayer, List<long>> wydzielenia;
-        private KeyValuePair<BasicFeatureLayer, List<long>> obreby;
         public static List<ParcelModel> parcel { get; set; } = new List<ParcelModel>();
-        public Dictionary<BasicFeatureLayer, List<long>> result;
-        public static MPZPModel mpzpModel { get; set; }
+        public static List<MPZPModel> mpzpModel { get; set; } = new List<MPZPModel>();
         public static List<ResolutionModel> resolutionModel = new List<ResolutionModel>();
         public static List<PrecintModel> precints = new List<PrecintModel>();
-        string value = ""; 
         List<long> lista;
         private async void getData(Geometry geometry, GeometryDimension dimension)
         {
             parcel = new List<ParcelModel>();
-            mpzpModel = null;
+            mpzpModel = new List<MPZPModel>();
             precints = new List<PrecintModel>();
             resolutionModel = new List<ResolutionModel>();
             ArcGIS.Desktop.Mapping.MapView view = ArcGIS.Desktop.Mapping.MapView.Active;
@@ -187,38 +181,42 @@ namespace WypisWyrys
         {
             try
             {
-                var lista = this.getIntersectedIds(geometry, layer, dimension);
-                var filter = new QueryFilter();
-                filter.WhereClause = $"{"OBJECTID"}="+ lista.First();
-                var selection = layer.GetTable();
-                var mpzp = selection.Search(filter);
-                mpzp.MoveNext();
-                var mpzpRow = mpzp.Current;
-                Dictionary<string, object> mpzpDictionary = new Dictionary<string, object>();
-                var fields = mpzpRow.GetFields();
-                int iterator = 0;
-                var atachments = mpzpRow.GetAttachments();
-                foreach (Attachment atach in atachments)
+                var lista = getIdsFromEveryParcel(layer);
+                foreach (long id in lista)
                 {
-                    var memoryStream = atach.GetData();
-                    var imageByte = memoryStream.ToArray();
-                    BitmapImage bitImage = new BitmapImage();
-                    bitImage.BeginInit();
-                    bitImage.StreamSource = memoryStream;
-                    bitImage.EndInit();
+                    var filter = new QueryFilter();
+                    filter.WhereClause = $"{"OBJECTID"}=" + id;
+                    var selection = layer.GetTable();
+                    var mpzp = selection.Search(filter);
+                    mpzp.MoveNext();
+                    var mpzpRow = mpzp.Current;
+                    Dictionary<string, object> mpzpDictionary = new Dictionary<string, object>();
+                    var fields = mpzpRow.GetFields();
+                    int iterator = 0;
+                    var atachments = mpzpRow.GetAttachments();
+                    foreach (Attachment atach in atachments)
+                    {
+                        var memoryStream = atach.GetData();
+                        var imageByte = memoryStream.ToArray();
+                        BitmapImage bitImage = new BitmapImage();
+                        bitImage.BeginInit();
+                        bitImage.StreamSource = memoryStream;
+                        bitImage.EndInit();
 
-                    mpzpDictionary.Add("legend", imageByte);
-                    mpzpDictionary.Add("legendSize", new Size(bitImage.PixelWidth, bitImage.PixelHeight));
-                    memoryStream.Close();
+                        mpzpDictionary.Add("legend", imageByte);
+                        mpzpDictionary.Add("legendSize", new Size(bitImage.PixelWidth, bitImage.PixelHeight));
+                        memoryStream.Close();
+                    }
+                    foreach (Field field in fields)
+                    {
+                        mpzpDictionary.Add(field.Name, mpzpRow.GetOriginalValue(iterator));
+                        iterator++;
+                    }
+                    mpzpModel.Add(new MPZPModel(mpzpDictionary));
                 }
-                foreach (Field field in fields)
-                {
-                    mpzpDictionary.Add(field.Name, mpzpRow.GetOriginalValue(iterator));
-                    iterator++;
-                }
-                mpzpModel = new MPZPModel(mpzpDictionary);
             }
-            catch(Exception e) {
+            catch (Exception e)
+            {
                 Debug.WriteLine(e.StackTrace);
             }
         }

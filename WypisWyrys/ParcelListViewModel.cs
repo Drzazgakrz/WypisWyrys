@@ -43,12 +43,12 @@ namespace WypisWyrys
         public List<ParcelModel> parcels { get; set; }
 
 
-        public MPZPModel model { get; set; }
+        public List<MPZPModel> model { get; set; }
         public List<ResolutionModel> resolution { get; set; }
         public List<PrecintModel> precints { get; set; }
         public void getView()
         {
-            this.model = MapClick.mpzpModel ;
+            this.model = MapClick.mpzpModel;
             parcels = MapClick.parcel;
             this.resolution = MapClick.resolutionModel;
             this.precints = MapClick.precints;

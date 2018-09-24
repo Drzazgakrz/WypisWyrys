@@ -38,7 +38,6 @@ C:\Users\szkolenie\Desktop\WypisWyrys_ArcGIS\WypisWyrys\WypisWyrys\obj\Debug\Bas
 C:\Users\szkolenie\Desktop\WypisWyrys_ArcGIS\WypisWyrys\WypisWyrys\obj\Debug\ownerInfo.baml
 C:\Users\szkolenie\Desktop\WypisWyrys_ArcGIS\WypisWyrys\WypisWyrys\obj\Debug\SettingsPane.baml
 C:\Users\szkolenie\Desktop\WypisWyrys_ArcGIS\WypisWyrys\WypisWyrys\obj\Debug\WypisWyrys.g.resources
-C:\Users\szkolenie\Desktop\WypisWyrys_ArcGIS\WypisWyrys\WypisWyrys\obj\Debug\WypisWyrys.Form1.resources
 C:\Users\szkolenie\Desktop\WypisWyrys_ArcGIS\WypisWyrys\WypisWyrys\obj\Debug\WypisWyrys.csproj.GenerateResource.Cache
 C:\Users\szkolenie\Desktop\WypisWyrys_ArcGIS\WypisWyrys\WypisWyrys\obj\Debug\WypisWyrys.dll
 C:\Users\szkolenie\Desktop\WypisWyrys_ArcGIS\WypisWyrys\WypisWyrys\obj\Debug\WypisWyrys.pdb
@@ -52,3 +51,4 @@ C:\Users\szkolenie\Desktop\WypisWyrys_ArcGIS\WypisWyrys\WypisWyrys\obj\Debug\MPZ
 C:\Users\szkolenie\Desktop\WypisWyrys_ArcGIS\WypisWyrys\WypisWyrys\obj\Debug\MPZPList.baml
 C:\Users\szkolenie\Desktop\WypisWyrys_ArcGIS\WypisWyrys\WypisWyrys\obj\Debug\ResolutionList.g.cs
 C:\Users\szkolenie\Desktop\WypisWyrys_ArcGIS\WypisWyrys\WypisWyrys\obj\Debug\ResolutionList.baml
+C:\Users\szkolenie\Desktop\WypisWyrys_ArcGIS\WypisWyrys\WypisWyrys\obj\Debug\WypisWyrys.ResolutionsWindow.resources

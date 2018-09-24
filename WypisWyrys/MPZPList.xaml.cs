@@ -22,21 +22,83 @@ namespace WypisWyrys
         {
             InitializeComponent();
         }
-        public void fillTextViews(MPZPModel model)
+
+        public List<MPZPModel> models;
+        public static MPZPModel model { get; set; }
+        public static List<ParcelModel> parcels { get; set; } = new List<ParcelModel>();
+
+        public void fillTextViews(List<MPZPModel> model)
         {
             try
             {
-                object result = null;
-                model.mpzp.TryGetValue(LayersSettingsForm.getConfig("MPZP", "MPZPId"), out result);
-                parcelName.Text = result.ToString();
-                model.mpzp.TryGetValue(LayersSettingsForm.getConfig("MPZP", "MPZPResolution"), out result);
-                resolutionNumber.Text = result.ToString();
+                this.models = model;
+                var i = 0;
+                foreach(MPZPModel currentModel in model)
+                {
+                    createRow(currentModel, i);
+                    i++;
+                }
+
             }catch(Exception e)
             {
                 MessageBox.Show("Wybierz działkę");
             }
         }
-        public void nextPane(object sender, RoutedEventArgs e)
+
+        private TextBox createTextBox(MPZPModel mpzp, string parent, string child, string name)
+        {
+            System.Windows.Controls.TextBox MPZPTextBox = new System.Windows.Controls.TextBox();
+            MPZPTextBox.IsReadOnly = true;
+            MPZPTextBox.Width = 150;
+            MPZPTextBox.Name = name;
+            object result = null;
+            string MPZPIdField = LayersSettingsForm.getConfig(parent, child);
+            mpzp.mpzp.TryGetValue(MPZPIdField, out result);
+            MPZPTextBox.Text = result.ToString();
+            return MPZPTextBox;
+        }
+
+        public void createRow(MPZPModel mpzp, int row)
+        {
+            WrapPanel panel = new WrapPanel();
+
+            TextBox MPZPName = createTextBox(mpzp, "MPZP", "MPZPId", "MPZPName");
+            panel.Children.Add(MPZPName);
+
+            TextBox resolutionName = createTextBox(mpzp, "MPZP", "MPZPResolution", "MPZPResolution");
+            panel.Children.Add(resolutionName);
+
+            System.Windows.Controls.Button button = new System.Windows.Controls.Button();
+            button.Content = "Wybierz";
+            button.Click += chooseMPZP;
+            panel.Children.Add(button);
+            primaryNavigator.Items.Add(panel);
+        }
+
+        public void chooseMPZP(object sender, RoutedEventArgs args) 
+        {
+            Button source = (Button)sender;
+            WrapPanel panel = (WrapPanel)source.Parent;
+            string text = "";
+            foreach(UIElement element in panel.Children)
+            {
+                TextBox box = (TextBox)element;
+                if (box.Name.Equals("MPZPName"))
+                {
+                    text = box.Text;
+                    break;
+                }
+            }
+            model = models.Where((mpzp) =>
+            {
+                object result = null;
+                mpzp.mpzp.TryGetValue(LayersSettingsForm.getConfig("MPZP", "MPZPId"), out result);
+                return (text.Equals(result.ToString()));
+            }).First();
+            nextPane();
+        }
+
+        public void nextPane()
         {
             ResolutionListViewModel.Show();
             MPZPListViewModel.desactivatePane();

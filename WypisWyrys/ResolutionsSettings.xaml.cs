@@ -129,7 +129,13 @@ namespace WypisWyrys
 
         public void showResolutionDetails(object sender, EventArgs e)
         {
-            
+            Button source = (Button)sender;
+            var parent = (WrapPanel)source.Parent;
+            var fields = parent.Children.GetEnumerator();
+            fields.MoveNext();
+            string resolutionName = ((TextBox)fields.Current).Text;
+            ResolutionDetailsSetWindow editWindow = new ResolutionDetailsSetWindow(resolutionName);
+            editWindow.Show();
         }
 
         public void selectionChanged(object sender, SelectionChangedEventArgs args)

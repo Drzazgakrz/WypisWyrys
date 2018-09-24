@@ -18,10 +18,10 @@ using WypisWyrys.Models;
 
 namespace WypisWyrys
 {
-    public partial class Form1 : Form
+    public partial class ResolutionsWindow : Form
     {
         public List<ResolutionModel> models { get; set; }
-        public Form1(List<ResolutionModel> models)
+        public ResolutionsWindow(List<ResolutionModel> models)
         {
             this.models = models;
             InitializeComponent();
@@ -60,8 +60,8 @@ namespace WypisWyrys
         }
         private class ButtonCell: DataGridViewButtonCell
         {
-            Form1 outer;
-            public ButtonCell(Form1 outer)
+            ResolutionsWindow outer;
+            public ButtonCell(ResolutionsWindow outer)
             {
                 this.outer = outer;
             }
@@ -73,8 +73,8 @@ namespace WypisWyrys
         }
         private class ZoomButton : DataGridViewButtonCell
         {
-            Form1 outer;
-            public ZoomButton(Form1 outer)
+            ResolutionsWindow outer;
+            public ZoomButton(ResolutionsWindow outer)
             {
                 this.outer = outer;
             }

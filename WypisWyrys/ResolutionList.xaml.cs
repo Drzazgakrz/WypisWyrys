@@ -49,7 +49,7 @@ namespace WypisWyrys
         }
         void Form1_Closing(object sender, FormClosedEventArgs e)
         {            
-             current.resolutions = ((Form1)sender).models;
+             current.resolutions = ((ResolutionsWindow)sender).models;
         }
         private ParcelModel current;
         public void addResolutionsToParcel(ParcelModel currentParcel)
@@ -139,7 +139,7 @@ namespace WypisWyrys
                 return parcelId.Equals(id.ToString());
             }).First();
             current = parcel;
-            Form1 form = new Form1(parcel.resolutions);
+            ResolutionsWindow form = new ResolutionsWindow(parcel.resolutions);
             form.FormClosed += new FormClosedEventHandler(Form1_Closing);
             form.Show();
         }

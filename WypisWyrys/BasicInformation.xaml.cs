@@ -92,7 +92,7 @@ namespace WypisWyrys
             user = pane.getUserModel();
             precints = dockpane.precints;
             parcels = dockpane.parcels;
-            mpzp = dockpane.model;
+            mpzp = MPZPListView.model;
             resolutions = ((ResolutionListViewModel)FrameworkApplication.DockPaneManager.Find(ResolutionListViewModel._dockPaneID)).getAcceptedModels();
             return collectData();
         }

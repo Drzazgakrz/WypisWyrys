@@ -117,6 +117,12 @@
       <DependentUpon>ParcelList.xaml</DependentUpon>
     </Compile>
     <Compile Include="ParcelListViewModel.cs" />
+    <Compile Include="ResolutionDetailsSetWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ResolutionDetailsSetWindow.Designer.cs">
+      <DependentUpon>ResolutionDetailsSetWindow.cs</DependentUpon>
+    </Compile>
     <Compile Include="ResolutionList.xaml.cs">
       <DependentUpon>ResolutionList.xaml</DependentUpon>
     </Compile>
@@ -127,11 +133,11 @@
     <Compile Include="DocumentsWindow.Designer.cs">
       <DependentUpon>DocumentsWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="Form1.cs">
+    <Compile Include="ResolutionsWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form1.Designer.cs">
-      <DependentUpon>Form1.cs</DependentUpon>
+    <Compile Include="ResolutionsWindow.Designer.cs">
+      <DependentUpon>ResolutionsWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="LayersSettingsForm.cs">
       <SubType>Form</SubType>
@@ -255,8 +261,8 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Form1.resx">
-      <DependentUpon>Form1.cs</DependentUpon>
+    <EmbeddedResource Include="ResolutionsWindow.resx">
+      <DependentUpon>ResolutionsWindow.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
