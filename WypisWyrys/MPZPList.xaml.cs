@@ -16,9 +16,9 @@ using WypisWyrys.Models;
 
 namespace WypisWyrys
 {
-    public partial class Step2View : UserControl
+    public partial class MPZPListView : UserControl
     {
-        public Step2View()
+        public MPZPListView()
         {
             InitializeComponent();
         }
@@ -27,7 +27,7 @@ namespace WypisWyrys
             try
             {
                 object result = null;
-                model.mpzp.TryGetValue(LayersSettingsForm.getConfig("MPZP", "MPZPName"), out result);
+                model.mpzp.TryGetValue(LayersSettingsForm.getConfig("MPZP", "MPZPId"), out result);
                 parcelName.Text = result.ToString();
                 model.mpzp.TryGetValue(LayersSettingsForm.getConfig("MPZP", "MPZPResolution"), out result);
                 resolutionNumber.Text = result.ToString();
@@ -38,13 +38,13 @@ namespace WypisWyrys
         }
         public void nextPane(object sender, RoutedEventArgs e)
         {
-            Dockpane3ViewModel.Show();
-            Step2ViewModel.desactivatePane();
+            ResolutionListViewModel.Show();
+            MPZPListViewModel.desactivatePane();
         }
         public void goBack(object sender, RoutedEventArgs e)
         {
-            Dockpane2ViewModel.Show();
-            Step2ViewModel.desactivatePane();
+            ParcelListViewModel.Show();
+            MPZPListViewModel.desactivatePane();
         }
     }
 }

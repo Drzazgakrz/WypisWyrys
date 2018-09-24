@@ -111,7 +111,7 @@ namespace WypisWyrys
             panel.ColumnCount = 2;
             string[] columns = prepareData(layer);
             panel.Controls.Add(new System.Windows.Forms.Label { Text = "Wybierz warstwę" }, 0, 0);
-            panel.Controls.Add(createLayerComboBox(layersNames, "areaLayer", parent), 1, 0);
+            panel.Controls.Add(createLayerComboBox(layersNames, "parcelsLayer", parent), 1, 0);
             panel.Controls.Add(new System.Windows.Forms.Label { Text = "Wybierz identyfikator" }, 0, 1);            
             panel.Controls.Add(createComboBox(columns, "parcelsId", parent), 1, 1);
             page.Controls.Add(panel);
@@ -216,21 +216,25 @@ namespace WypisWyrys
             try
             {
                 string[] columns = null;
-                Task t = QueuedTask.Run(() =>
+                if (data != null)
                 {
-                    Table table = data.GetTable();
-                    RowCursor cursor = table.Search();
-                    cursor.MoveNext();
-                    var fields = cursor.GetFields();
-                    columns = new string[fields.Count];
-                    int i = 0;
-                    foreach (Field field in fields)
+                    Task t = QueuedTask.Run(() =>
                     {
-                        columns[i] = field.Name;
-                        i++;
-                    }
-                });
-                t.Wait();
+
+                        Table table = data.GetTable();
+                        RowCursor cursor = table.Search();
+                        cursor.MoveNext();
+                        var fields = cursor.GetFields();
+                        columns = new string[fields.Count];
+                        int i = 0;
+                        foreach (Field field in fields)
+                        {
+                            columns[i] = field.Name;
+                            i++;
+                        }
+                    });
+                    t.Wait();
+                }
                 return columns;
             }
             catch (Exception e)
@@ -267,40 +271,63 @@ namespace WypisWyrys
             {
                 XDocument document = XDocument.Load("config.xml");
                 if (document.Root.Element(parent).Element(node) == null)
+                {
+                    if(document.Root.Element(parent) == null)
+                        document.Root.Add(new XElement(parent, ""));
                     document.Root.Element(parent).Add(new XElement(node, value));
+                }                   
                 else
                     document.Root.Element(parent).Element(node).ReplaceWith(new XElement(node, value));
                 document.Save("config.xml");                
             }
             catch (System.IO.FileNotFoundException e)
             {
-                new XDocument(
-                    new XElement("root",
-                        new XElement("MPZP", ""),
-                        new XElement("Działki", ""),
-                        new XElement("Wydzielenia", ""),
-                        new XElement("Obręby", ""),
-                        new XElement("paths", "")
-                    )
-                ).Save("config.xml");
-                if (iterator < 3)
+                if(saveEmptyConfigFile())
                 {
-                    iterator++;
-                    setConfig(parent, node, value);    
+                    
+                    setConfig(parent, node, value);
                 }
-                else if(iterator == 3)
+                else if (iterator == 3)
                 {
                     MessageBox.Show("Nie udało się zapisać konfiguracji.");
                 }
-                       
+                else
+                {
+                    iterator++;
+                }
             }
+        }
+        public static bool saveEmptyConfigFile()
+        {
+            try
+            {
+                new XDocument(
+                        new XElement("root",
+                            new XElement("MPZP", ""),
+                            new XElement("Działki", ""),
+                            new XElement("Wydzielenia", ""),
+                            new XElement("Obręby", ""),
+                            new XElement("paths", ""),
+                            new XElement("scale", "")
+                        )
+                    ).Save("config.xml");
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }        
+            
         }
         public static string getConfig(string parent, string field)
         {
             try
             {
                 XDocument document = XDocument.Load("config.xml");
-                return document.Root.Element(parent).Element(field).Value;
+                if (field != null)
+                    return document.Root.Element(parent).Element(field).Value;
+                else
+                    return document.Root.Element(parent).Value;
             }
             catch (Exception e)
             {

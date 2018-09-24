@@ -15,48 +15,42 @@ using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Framework.Dialogs;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
-
+using WypisWyrys.Models;
 
 namespace WypisWyrys
 {
-    public class Dockpane1ViewModel : DockPane
+    internal class ResolutionListViewModel : DockPane
     {
-        private const string _dockPaneID = "WypisWyrys_Dockpane1";
-        private static string name { get; set; }
-        protected Dockpane1ViewModel() {
-        }
+        public static string _dockPaneID = "WypisWyrys_Dockpane3";
 
-        /// <summary>
-        /// Show the DockPane.
-        /// </summary>
-        internal static void Show()
+        protected ResolutionListViewModel() { }
+
+        public static void Show()
         {
             DockPane pane = FrameworkApplication.DockPaneManager.Find(_dockPaneID);
             if (pane == null)
-                return; 
+                return;
+            ((ResolutionListView)((ResolutionListViewModel)pane).Content).getModels();
             pane.Activate();
-
         }
         public static void desactivatePane()
         {
             DockPane pane = FrameworkApplication.DockPaneManager.Find(_dockPaneID);
             pane.Hide();
         }
-    }
-
-    internal class Dockpane1_ShowButton : Button
-    {
-        protected override void OnClick()
+        public List<ResolutionModel> getAcceptedModels()
         {
-            DockPane pane = FrameworkApplication.DockPaneManager.Find(BasicInformationViewModel._dockPaneID);
-            pane.Hide();
-            Dockpane1ViewModel.Show();
+             return ((ResolutionListView)this.Content).modelsAccepted;
         }
     }
 
+    
 
-
-    /// <summary>
-    /// Button implementation for the button on the menu of the burger button.
-    /// </summary>
+    internal class Dockpane3_ShowButton : Button
+    {
+        protected override void OnClick()
+        {
+            ResolutionListViewModel.Show();
+        }
+    }
 }

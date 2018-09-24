@@ -20,20 +20,20 @@ using WypisWyrys.Models;
 
 namespace WypisWyrys
 {
-    public class Dockpane2ViewModel : DockPane
+    public class ParcelListViewModel : DockPane
     {
         public const string _dockPaneID = "WypisWyrys_Dockpane2" ;
         public static string getDocpane() {
             return _dockPaneID;
         }
-        protected Dockpane2ViewModel() { }
+        protected ParcelListViewModel() { }
 
         /// <summary>
         /// Show the DockPane.
         /// </summary>
         public static void Show()
         {
-            Dockpane2ViewModel pane = (Dockpane2ViewModel)FrameworkApplication.DockPaneManager.Find(_dockPaneID);
+            ParcelListViewModel pane = (ParcelListViewModel)FrameworkApplication.DockPaneManager.Find(_dockPaneID);
             if (pane == null)
                 return;            
             pane.Activate();
@@ -53,14 +53,14 @@ namespace WypisWyrys
             this.resolution = MapClick.resolutionModel;
             this.precints = MapClick.precints;
             //string id = LayersSettingsForm.getConfig("Działki", "parcelsId");
-            ((Dockpane2View)this.Content).fillTextBox(parcels);
+            ((ParcelListView)this.Content).fillTextBox(parcels);
         }
         public void desactivatePane()
         {
             if(parcels != null)
             {
                 MapClick.isDockpaneActive = false;
-                Step2ViewModel.Show();
+                MPZPListViewModel.Show();
                 DockPane pane = FrameworkApplication.DockPaneManager.Find(_dockPaneID);
                 pane.Hide();
                 return;
@@ -70,7 +70,7 @@ namespace WypisWyrys
         }
         public void resetPane()
         {
-            ((Dockpane2View)this.Content).primaryNavigator.Items.Clear();
+            ((ParcelListView)this.Content).primaryNavigator.Items.Clear();
             this.model = null;
             this.parcels = new List<ParcelModel>();
             this.precints = new List<PrecintModel>();
@@ -86,7 +86,7 @@ namespace WypisWyrys
     {
         protected override void OnClick()
         {            
-            Dockpane2ViewModel.Show();
+            ParcelListViewModel.Show();
         }
         
     }

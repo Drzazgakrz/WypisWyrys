@@ -16,21 +16,21 @@ using WypisWyrys.Models;
 
 namespace WypisWyrys
 {
-    public partial class ownerInfoView : UserControl
+    public partial class OwnerInfoView : UserControl
     {
-        public ownerInfoView()
+        public OwnerInfoView()
         {
             InitializeComponent();
         }
         public void getBasicInfo(object sender, RoutedEventArgs e)
         {
             BasicInformationViewModel.Show();
-            ownerInfoViewModel.desactivatePane();
+            OwnerInfoViewModel.desactivatePane();
         }
         public void goBack(object sender, RoutedEventArgs e)
         {
-            Step2ViewModel.Show();
-            ownerInfoViewModel.desactivatePane();
+            MPZPListViewModel.Show();
+            OwnerInfoViewModel.desactivatePane();
         }
 
         public UserModel getUserInfo()

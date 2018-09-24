@@ -26,10 +26,23 @@
         <DockPanel LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Height="30" Margin="0,47,0,17">
             <Button Content="Zmień ścieżkę do szablonu Wyrysu i Wypisu" x:Name="documentPath" Click="setDocumentPath"/>
         </DockPanel>
-        <DockPanel LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Name="dockPanel1" Height="30" Margin="0,136,0,-73">
+        <DockPanel LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Name="dockPanel1" Height="30" Margin="0,96,0,-30">
             <Button Click="setLayersSettings" Content="Zmień konfigurację warstw" />
         </DockPanel>
-        
+        <DockPanel LastChildFill="true" KeyboardNavigation.TabNavigation="Local"  Height="30" Margin="0,132,0,-65">
+            <Label>Skala wydruku 1:</Label><TextBox Name="scale"></TextBox>
+        </DockPanel>
+        <DockPanel Height="30" Margin="0,168,0,-99">
+            <Button Click="saveScale">
+                Zapisz skalę
+            </Button>
+        </DockPanel>
+
+        <DockPanel Height="30" Margin="0,198,0,-128">
+            <Button Click="changeResolutionsSettings">
+                Zmień ustawienia wydzieleń
+            </Button>
+        </DockPanel>
 
     </Grid>
 </UserControl>

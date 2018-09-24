@@ -19,15 +19,15 @@ using WypisWyrys.Models;
 
 namespace WypisWyrys
 {
-    internal class ownerInfoViewModel : DockPane
+    internal class OwnerInfoViewModel : DockPane
     {
         public UserModel getUserModel()
         {
-            return ((ownerInfoView)this.Content).getUserInfo();
+            return ((OwnerInfoView)this.Content).getUserInfo();
         }
         public static string _dockPaneID = "WypisWyrys_ownerInfo";
 
-        protected ownerInfoViewModel() { }
+        protected OwnerInfoViewModel() { }
 
         public static void Show()
         {
@@ -47,7 +47,7 @@ namespace WypisWyrys
     {
         protected override void OnClick()
         {
-            ownerInfoViewModel.Show();
+            OwnerInfoViewModel.Show();
         }
     }
 }

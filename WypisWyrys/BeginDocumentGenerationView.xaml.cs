@@ -20,9 +20,9 @@ namespace WypisWyrys
     /// <summary>
     /// Interaction logic for Dockpane1View.xaml
     /// </summary>
-    public partial class Dockpane1View : UserControl
+    public partial class BeginDocumentGenerationView : UserControl
     {
-        public Dockpane1View()
+        public BeginDocumentGenerationView()
         {            
             InitializeComponent();
         }
@@ -30,10 +30,10 @@ namespace WypisWyrys
         public void Button_Click(object sender, RoutedEventArgs e)
         {
             MapClick.isDockpaneActive = true;
-            Dockpane2ViewModel pane = (Dockpane2ViewModel)FrameworkApplication.DockPaneManager.Find(Dockpane2ViewModel._dockPaneID);
+            ParcelListViewModel pane = (ParcelListViewModel)FrameworkApplication.DockPaneManager.Find(ParcelListViewModel._dockPaneID);
             pane.resetPane();
-            Dockpane2ViewModel.Show();
-            Dockpane1ViewModel.desactivatePane();
+            ParcelListViewModel.Show();
+            BeginDocumentGenerationViewModel.desactivatePane();
         }
     }
 }

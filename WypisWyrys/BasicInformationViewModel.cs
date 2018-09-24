@@ -27,10 +27,10 @@ namespace WypisWyrys
 
         public static void Show()
         {
-            DockPane pane = FrameworkApplication.DockPaneManager.Find(_dockPaneID);
+            BasicInformationViewModel pane = (BasicInformationViewModel)FrameworkApplication.DockPaneManager.Find(_dockPaneID);
             if (pane == null)
                 return;
-
+            ((BasicInformationView)pane.Content).initializeComponents();
             pane.Activate();
         }
         public static void desactivatePane()

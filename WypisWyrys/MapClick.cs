@@ -19,6 +19,8 @@ using ArcGIS.Core.Data.UtilityNetwork.NetworkDiagrams;
 using ArcGIS.Core.Data.Raster;
 using System.Diagnostics;
 using ArcGIS.Core.CIM;
+using System.Windows.Media.Imaging;
+using System.Drawing;
 
 namespace WypisWyrys
 {
@@ -28,11 +30,13 @@ namespace WypisWyrys
         public MapClick()
         {
             IsSketchTool = true;
-            SketchType = SketchGeometryType.Rectangle;
+            SketchType = SketchGeometryType.Multipoint;
             SketchOutputMode = SketchOutputMode.Screen;
         }
 
         public static bool isDockpaneActive { get; set; } = false;
+        private FeatureLayer parcellayer;
+        private QueryFilter parcelQuery;
         private KeyValuePair<BasicFeatureLayer, List<long>> layer;
         private KeyValuePair<BasicFeatureLayer, List<long>> mpzp;
         private KeyValuePair<BasicFeatureLayer, List<long>> wydzielenia;
@@ -44,23 +48,7 @@ namespace WypisWyrys
         public static List<PrecintModel> precints = new List<PrecintModel>();
         string value = ""; 
         List<long> lista;
-        protected override void OnToolDoubleClick(MapViewMouseButtonEventArgs e)
-        {
-            if (isDockpaneActive)
-            {
-                ArcGIS.Desktop.Mapping.MapView view = ArcGIS.Desktop.Mapping.MapView.Active;
-                Geometry geometry = null;
-                Task t = QueuedTask.Run(() =>
-                {
-                    geometry = view.ClientToMap(e.ClientPoint);
-                    getData(geometry);
-                });
-                t.Wait();
-                
-            }
-            ((Dockpane2ViewModel)FrameworkApplication.DockPaneManager.Find(Dockpane2ViewModel._dockPaneID)).getView();
-        }
-        private async void getData(Geometry geometry)
+        private async void getData(Geometry geometry, GeometryDimension dimension)
         {
             parcel = new List<ParcelModel>();
             mpzpModel = null;
@@ -68,101 +56,161 @@ namespace WypisWyrys
             resolutionModel = new List<ResolutionModel>();
             ArcGIS.Desktop.Mapping.MapView view = ArcGIS.Desktop.Mapping.MapView.Active;
 
-            Task t = QueuedTask.Run(() =>
+                var layersTOC = ArcGIS.Desktop.Mapping.MapView.Active.Map.GetLayersAsFlattenedList();
+            FeatureLayer parcelsLayer = (FeatureLayer)layersTOC.Where((layer) =>
             {
-                result = view.GetFeatures(geometry, true, false);
-                Polygon shp = null;
-                foreach (KeyValuePair<BasicFeatureLayer, List<long>> fLayer in result)
+                return layer.Name.Contains(LayersSettingsForm.getConfig("Działki", "parcelsLayer"));
+            }).First();
+            var parcels = ArcGIS.Desktop.Mapping.MapView.Active.Map.GetLayersAsFlattenedList();
+            foreach (var f in parcels)
+            {
+                var feat = f.Name.Equals(LayersSettingsForm.getConfig("Działki", "parcelsLayer"));
+                if (feat)
                 {
-                    if (fLayer.Key.Name.Contains(LayersSettingsForm.getConfig("Działki", "parcelsLayer")))
-                    {
-                        this.layer = fLayer;
-                        this.getParcel();
-                        CIMLineSymbol symbol = new CIMLineSymbol();
-                        symbol.SetColor(ColorFactory.Instance.CreateRGBColor(24, 69, 59));
-                        foreach (ParcelModel parcelModel in parcel)
-                        {
-                            object result = null;
-                            var pointsFromShape = parcelModel.parcel.TryGetValue("Shape", out result);
-                            AddOverlayAsync((Polygon)result, (symbol.MakeSymbolReference()));
-                        }
-                        
-                    }
-                    else if (fLayer.Key.Name.Contains(LayersSettingsForm.getConfig("MPZP", "MPZPlayer")))
-                    {
-                        this.mpzp = fLayer;
-                        this.getMPZP();
-                    }
-                    else if (fLayer.Key.Name.Contains(LayersSettingsForm.getConfig("Wydzielenia", "precintLayer")))
-                    {
-                        this.wydzielenia = fLayer;
-                        this.getResolution(geometry);
-                    }
-                    else if (fLayer.Key.Name.Contains(LayersSettingsForm.getConfig("Obręby", "areaLayer")))
-                    {
-                        this.obreby = fLayer;
-                        this.getPrecints();
-                    }
+                    this.parcellayer = (FeatureLayer)f;
                 }
-                var textGraphic = new CIMTextGraphic();
-                textGraphic.Shape = geometry;
-                var textSymbol = SymbolFactory.Instance.ConstructTextSymbol(ColorFactory.Instance.BlackRGB, 8.5, "Corbel", "Regular");
-                textGraphic.Symbol = textSymbol.MakeSymbolReference();
-                view.AddOverlay(textGraphic);
-            });            
-            t.Wait();
+            }
+            this.getParcel(parcelsLayer, geometry, dimension);
+            CIMLineSymbol symbol = new CIMLineSymbol();
+            symbol.SetColor(ColorFactory.Instance.CreateRGBColor(255, 255, 255, 0));
+            foreach (ParcelModel parcelModel in parcel)
+            {
+                object result = null;
+                var pointsFromShape = parcelModel.parcel.TryGetValue("Shape", out result);
+            }
+            Polygon shp = null;
+            foreach (Layer layer in layersTOC)
+            {
+                try
+                {
+                    FeatureLayer fLayer = (FeatureLayer)layer; 
+                    if (fLayer.Name.Contains(LayersSettingsForm.getConfig("MPZP", "MPZPlayer")))
+                    {
+                        this.getMPZP(fLayer, geometry, dimension);
+                    }
+                    else if (fLayer.Name.Contains(LayersSettingsForm.getConfig("Wydzielenia", "precintLayer")))
+                    { 
+                        this.getResolution(fLayer, geometry, dimension);
+                    }
+                    else if (fLayer.Name.Contains(LayersSettingsForm.getConfig("Obręby", "areaLayer")))
+                    {
+                        this.getPrecints(fLayer, geometry, dimension);
+                    }
+                }catch (Exception) { }
+            }
         }
-        protected override async Task<bool> OnSketchCompleteAsync(Geometry geometry)
+        protected override Task<bool> OnSketchCompleteAsync(Geometry geometry)
         {
             if (isDockpaneActive)
             {
-                 getData(geometry);
-                ((Dockpane2ViewModel)FrameworkApplication.DockPaneManager.Find(Dockpane2ViewModel._dockPaneID)).getView();
-                return true;
+                List<MapPoint> points = new List<MapPoint>();
+                Task t = QueuedTask.Run(() =>
+                {
+                    foreach (MapPoint point in ((Multipoint)geometry).Points)
+                    {
+                        MapPoint finalPoint = ArcGIS.Desktop.Mapping.MapView.Active.ClientToMap(new System.Windows.Point(point.X, point.Y));
+                        points.Add(finalPoint);
+                    }
+
+                    getData(MultipointBuilder.CreateMultipoint(points), GeometryDimension.esriGeometry0Dimension);
+                });
+                t.Wait();
+                ((ParcelListViewModel)FrameworkApplication.DockPaneManager.Find(ParcelListViewModel._dockPaneID)).getView();
+                return QueuedTask.Run(() =>
+                {
+                    if (parcellayer != null)
+                    {
+                        parcellayer.Select(this.parcelQuery, SelectionCombinationMethod.New);
+
+                    }
+                    return true;
+                });
             }
-            return false;
+            return QueuedTask.Run(() =>
+            {
+                return false;
+            });
         }
-        private void getParcel()
+        private void getParcel(FeatureLayer layer, Geometry geometry, GeometryDimension dimension)
         {
-            lista = layer.Value;
-            
+            lista = this.getIntersectedIds(geometry, layer, dimension);
+            var selection = layer.GetTable();
+            var selectFilter = new QueryFilter();
+            var statement = "";
             foreach (long id in lista)
             {
+                if (statement.Length > 0)
+                {
+                    statement += " OR ";
+                }
                 var filter = new QueryFilter();
-                //string idField = LayersSettingsForm.getConfig("Działki", "parcelsId");idField + "="
+                statement += "OBJECTID=" + id;
                 filter.WhereClause = "OBJECTID=" + id;
-                var selection = this.layer.Key.GetTable();
+               
                 var cursor = selection.Search(filter);
-                selection.Select(filter, SelectionType.ObjectID, SelectionOption.Normal);
+               
                 cursor.MoveNext();
                 var row = cursor.Current;
                 Dictionary<string, object> parcelDictionary = new Dictionary<string, object>();
                 var fields = row.GetFields();
                 int iterator = 0;
                 foreach (Field field in fields)
-                {
+                {   
+                    
                     parcelDictionary.Add(field.Name, row.GetOriginalValue(iterator));
                     iterator++;
                 }
                 parcel.Add(new ParcelModel(parcelDictionary));
             }
+            selectFilter.WhereClause = statement ;
+            this.parcelQuery = selectFilter;
         }
-        private void getMPZP()
+        private List<long> getIdsFromEveryParcel(FeatureLayer layer)
+        {
+            List<long> allIds = new List<long>();
+            foreach(ParcelModel current in parcel)
+            {
+                object result;
+                current.parcel.TryGetValue("Shape", out result);
+                List<long> currentIds = getIntersectedIds((Polygon)result, layer, GeometryDimension.esriGeometry2Dimension);
+                foreach(long currentId in currentIds)
+                {
+                    if (!allIds.Contains(currentId))
+                    {
+                        allIds.Add(currentId);
+                    }
+                }
+            }
+            return allIds;
+        }
+        private void getMPZP(FeatureLayer layer, Geometry geometry,GeometryDimension dimension)
         {
             try
             {
-                //result.TryGetValue(this.mpzp.Key, out lista);
+                var lista = this.getIntersectedIds(geometry, layer, dimension);
                 var filter = new QueryFilter();
-                //string idField = LayersSettingsForm.getConfig("Działki", "parcelsId");
-                filter.WhereClause = $"{"OBJECTID"}="+ this.mpzp.Value.First();
-                var selection = this.mpzp.Key.GetTable();
+                filter.WhereClause = $"{"OBJECTID"}="+ lista.First();
+                var selection = layer.GetTable();
                 var mpzp = selection.Search(filter);
                 mpzp.MoveNext();
                 var mpzpRow = mpzp.Current;
-               // selection.Select(filter, SelectionType.ObjectID, SelectionOption.Normal);
                 Dictionary<string, object> mpzpDictionary = new Dictionary<string, object>();
                 var fields = mpzpRow.GetFields();
                 int iterator = 0;
+                var atachments = mpzpRow.GetAttachments();
+                foreach (Attachment atach in atachments)
+                {
+                    var memoryStream = atach.GetData();
+                    var imageByte = memoryStream.ToArray();
+                    BitmapImage bitImage = new BitmapImage();
+                    bitImage.BeginInit();
+                    bitImage.StreamSource = memoryStream;
+                    bitImage.EndInit();
+
+                    mpzpDictionary.Add("legend", imageByte);
+                    mpzpDictionary.Add("legendSize", new Size(bitImage.PixelWidth, bitImage.PixelHeight));
+                    memoryStream.Close();
+                }
                 foreach (Field field in fields)
                 {
                     mpzpDictionary.Add(field.Name, mpzpRow.GetOriginalValue(iterator));
@@ -174,10 +222,15 @@ namespace WypisWyrys
                 Debug.WriteLine(e.StackTrace);
             }
         }
-        private void getResolution(Geometry geometry)
+        private void getResolution(FeatureLayer layer, Geometry geometry, GeometryDimension dimension)
         {
-                var selection = this.wydzielenia.Key.GetTable();
-                var cursor = selection.Search();
+            var resolutionList = this.getIdsFromEveryParcel(layer);
+            foreach (long id in resolutionList)
+            {
+                var selection = layer.GetTable();
+                QueryFilter filter = new QueryFilter();
+                filter.WhereClause = "OBJECTID=" + id;
+                var cursor = selection.Search(filter);
                 while (cursor.MoveNext())
                 {
                     var resolutionRow = cursor.Current;
@@ -191,17 +244,18 @@ namespace WypisWyrys
                     }
                     resolutionModel.Add(new ResolutionModel(resolutionDictionary));
                 }
-            
-        }private int count;
-        private void getPrecints()
+            }
+        }
+
+        private void getPrecints(FeatureLayer layer, Geometry geometry, GeometryDimension dimension)
         {
-            //esult.TryGetValue(this.obreby.Key, out lista);
-            foreach (long id in obreby.Value)
+            var precintsList = this.getIntersectedIds(geometry, layer, dimension);
+            foreach (long id in precintsList)
             {
                 var filter = new QueryFilter();
                 string idField = LayersSettingsForm.getConfig("Obręby", "areaId");
                 filter.WhereClause = idField + "=" + id;
-                var selection = this.obreby.Key.GetTable();
+                var selection = layer.GetTable();
                 var wydzielenia = selection.Search(filter);
                 while (wydzielenia.MoveNext())
                 {
@@ -222,30 +276,20 @@ namespace WypisWyrys
         string geometryString = "";
         public List<long> getIntersectedIds(Geometry geometry, FeatureLayer layer, GeometryDimension dimension)
         {
-            /*try
-            {*/
+            List<long> intersectedObjects = new List<long>();
                 var table = layer.GetTable();
-                var selection = table.Search();
-                List<long> intersectedObjects = new List<long>();
-                while(selection.MoveNext())
+                var selection = table.Search();                
+                while (selection.MoveNext())
                 {
-                var current = selection.Current;
+                    var current = selection.Current;
                     Polygon polygon = (Polygon)current.GetOriginalValue(current.FindField("Shape"));
-                        IGeometryEngine engine = GeometryEngine.Instance;
-                        if(!engine.Intersection(geometry, polygon, dimension).IsEmpty)
-                        {
-                            
-                            intersectedObjects.Add(current.GetObjectID());
-                        }
-                //MessageBox.Show(intersectedObjects.Count.ToString());
+                    IGeometryEngine engine = GeometryEngine.Instance;
+                    if (!engine.Intersection(geometry, polygon, dimension).IsEmpty)
+                    {
+                        intersectedObjects.Add(current.GetObjectID());
+                    }
                 }
-                return intersectedObjects;
-                
-            /*}catch(Exception e)
-            {
-                return null;
-            }*/
-            
+            return intersectedObjects;            
         }
 
     }

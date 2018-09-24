@@ -21,31 +21,31 @@ using WypisWyrys.Models;
 
 namespace WypisWyrys
 {
-    public partial class Dockpane3View : System.Windows.Controls.UserControl
+    public partial class ResolutionListView : System.Windows.Controls.UserControl
     {
         public List<ResolutionModel> modelsAccepted { get; set; }
         public List<ParcelModel> parcels { get; set; }
-        public Dockpane3View()
+        public ResolutionListView()
         {
             InitializeComponent();
            
         }
         public void getModels()
         {
-            Dockpane2ViewModel pane = (Dockpane2ViewModel)FrameworkApplication.DockPaneManager.Find(Dockpane2ViewModel._dockPaneID);
+            ParcelListViewModel pane = (ParcelListViewModel)FrameworkApplication.DockPaneManager.Find(ParcelListViewModel._dockPaneID);
             modelsAccepted = pane.resolution;
 
             fillTextBox(pane.parcels);
         }
         public void getOwnerInfo(object sender, RoutedEventArgs e)
         {
-            ownerInfoViewModel.Show();
-            Dockpane3ViewModel.desactivatePane();
+            OwnerInfoViewModel.Show();
+            ResolutionListViewModel.desactivatePane();
         }
         public void goBack(object sender, RoutedEventArgs e)
         {
-            Step2ViewModel.Show();
-            Dockpane3ViewModel.desactivatePane();
+            MPZPListViewModel.Show();
+            ResolutionListViewModel.desactivatePane();
         }
         void Form1_Closing(object sender, FormClosedEventArgs e)
         {            
@@ -81,7 +81,6 @@ namespace WypisWyrys
                 createRow(parcels.ElementAt(i), i);
                 addResolutionsToParcel(parcels.ElementAt(i));
             }
-            //primaryNavigator.ItemsSource = panel;
         }
         string parcelIdField;
         TableLayoutPanel panel;
@@ -132,7 +131,6 @@ namespace WypisWyrys
             var children = parent.Children.GetEnumerator();
             children.MoveNext();
             string parcelId = ((System.Windows.Controls.TextBox)children.Current).Text;
-            ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show(parcelId);
             ParcelModel parcel = parcels.Where((singleParcel) =>
             {
                 object id = null;

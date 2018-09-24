@@ -1,4 +1,6 @@
-﻿using ArcGIS.Desktop.Framework;
+﻿using ArcGIS.Core.Data;
+using ArcGIS.Desktop.Framework;
+using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
 using System;
 using System.Collections.Generic;
@@ -19,13 +21,13 @@ using WypisWyrys.Models;
 
 namespace WypisWyrys
 {
-    public partial class Dockpane2View : System.Windows.Controls.UserControl
+    public partial class ParcelListView : System.Windows.Controls.UserControl
     {
-        public Dockpane2View()
+        public ParcelListView()
         {
             InitializeComponent();
         }
-        private List<ParcelModel> parcels;
+        private List<ParcelModel> parcels = new List<ParcelModel>();
         public void fillTextBox(List<ParcelModel> parcels)
         {
             panel = new TableLayoutPanel();
@@ -36,8 +38,44 @@ namespace WypisWyrys
             {
                 createRow(parcels.ElementAt(i), i);
             }
-            //primaryNavigator.ItemsSource = panel;
         }
+
+        private void findParcel(object sender, RoutedEventArgs e)
+        {
+            string parcelIdentifier = this.identifier.Text;
+            string id = LayersSettingsForm.getConfig("Działki", "parcelsId");
+            string parcelLayerName = LayersSettingsForm.getConfig("Działki", "parcelsLayer");
+            if (id == null)
+            {
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Brak danych konfiguracyjnych. Podaj nowe");
+                return;
+            }
+            Task t = QueuedTask.Run(() =>
+            {
+                var layers = MapView.Active.GetSelectedLayers();
+                object result = null;
+                Layer parcelLayer = layers.Where((layer) =>
+                {
+                    return layer.Name.Equals(parcelLayerName);
+                }).First();
+
+                ArcGIS.Core.Data.Table table = ((FeatureLayer)parcelLayer).GetTable();
+                QueryFilter filter = new QueryFilter();
+                filter.WhereClause = id + "=" + parcelIdentifier;
+                var cursor = table.Search(filter);
+                cursor.MoveNext();
+                var parcel = cursor.Current;
+                Dictionary<string, object> parcelModel = new Dictionary<string, object>();
+                int i = 0;
+                foreach(Field field in parcel.GetFields())
+                {
+                    parcelModel.Add(field.Name, parcel.GetOriginalValue(i));
+                    i++;
+                }
+            });
+            
+        }
+
         string parcelIdField;
         TableLayoutPanel panel;
         public void createRow(ParcelModel parcel, int row)
@@ -54,7 +92,6 @@ namespace WypisWyrys
             parcelId.Text = result.ToString();
             System.Windows.Controls.Button button = new System.Windows.Controls.Button();
             button.Content = "Usuń";
-            //button. = result.ToString();
             button.Click +=removeParcel;
             panel.Children.Add(button);
             primaryNavigator.Items.Add(panel);            
@@ -78,7 +115,7 @@ namespace WypisWyrys
         }
         public void checkParcelProperties(object sender, RoutedEventArgs e)
         {
-            Dockpane2ViewModel pane = (Dockpane2ViewModel)FrameworkApplication.DockPaneManager.Find(Dockpane2ViewModel._dockPaneID);
+            ParcelListViewModel pane = (ParcelListViewModel)FrameworkApplication.DockPaneManager.Find(ParcelListViewModel._dockPaneID);
             pane.desactivatePane();
         }
     }

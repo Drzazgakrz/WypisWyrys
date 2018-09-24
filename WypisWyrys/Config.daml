@@ -23,6 +23,7 @@
           <button refID="MapToolZoom_MapToolZoomInOut" />
           <button refID="WypisWyrys_Dockpane4_ShowButton" size="large" />
           <button refID="WypisWyrys_SettingsPane_ShowButton" size="large" />
+          <button refID="WypisWyrys_resolutionsSettings_ShowButton" size="large" />
         </group>
       </groups>
       <controls>
@@ -42,26 +43,29 @@
         </button>
       </controls>
       <dockPanes>
-        <dockPane id="WypisWyrys_Dockpane1" caption="Aktywacja" className="Dockpane1ViewModel" dock="group" dockWith="esri_core_contentsDockPane">
-          <content className="Dockpane1View" />
+        <dockPane id="WypisWyrys_Dockpane1" caption="Aktywacja" className="BeginDocumentGenerationViewModel" dock="group" dockWith="esri_core_contentsDockPane">
+          <content className="BeginDocumentGenerationView" />
         </dockPane>
-        <dockPane id="WypisWyrys_Dockpane2" caption="Wybierz działkę" className="Dockpane2ViewModel" dock="group" dockWith="esri_core_contentsDockPane">
-          <content className="Dockpane2View" />
+        <dockPane id="WypisWyrys_Dockpane2" caption="Wybierz działkę" className="ParcelListViewModel" dock="group" dockWith="esri_core_contentsDockPane">
+          <content className="ParcelListView" />
         </dockPane>
-        <dockPane id="WypisWyrys_Step2" caption="Dane działki" className="Step2ViewModel" dock="group" dockWith="esri_core_contentsDockPane">
-          <content className="Step2View" />
+        <dockPane id="WypisWyrys_Step2" caption="Dane działki" className="MPZPListViewModel" dock="group" dockWith="esri_core_contentsDockPane">
+          <content className="MPZPListView" />
         </dockPane>
-        <dockPane id="WypisWyrys_Dockpane3" caption="Wybór wydzieleń" className="Dockpane3ViewModel" dock="group" dockWith="esri_core_contentsDockPane">
-          <content className="Dockpane3View" />
+        <dockPane id="WypisWyrys_Dockpane3" caption="Wybór wydzieleń" className="ResolutionListViewModel" dock="group" dockWith="esri_core_contentsDockPane">
+          <content className="ResolutionListView" />
         </dockPane>
-        <dockPane id="WypisWyrys_ownerInfo" caption="Dane wnioskodawcy" className="ownerInfoViewModel" dock="group" dockWith="esri_core_contentsDockPane">
-          <content className="ownerInfoView" />
+        <dockPane id="WypisWyrys_ownerInfo" caption="Dane wnioskodawcy" className="OwnerInfoViewModel" dock="group" dockWith="esri_core_contentsDockPane">
+          <content className="OwnerInfoView" />
         </dockPane>
         <dockPane id="WypisWyrys_BasicInformation" caption="Podstawowe informacje" className="BasicInformationViewModel" dock="group" dockWith="esri_core_contentsDockPane">
           <content className="BasicInformationView" />
         </dockPane>
         <dockPane id="WypisWyrys_SettingsPane" caption="Ustawienia" className="SettingsPaneViewModel" dock="group" dockWith="esri_core_contentsDockPane">
           <content className="SettingsPaneView" />
+        </dockPane>
+        <dockPane id="WypisWyrys_resolutionsSettings" caption="resolutionsSettings" className="ResolutionsSettingsViewModel" dock="group" dockWith="esri_core_contentsDockPane">
+          <content className="ResolutionsSettingsView" />
         </dockPane>
       </dockPanes>
     </insertModule>

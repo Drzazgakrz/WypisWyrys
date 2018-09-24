@@ -15,42 +15,48 @@ using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Framework.Dialogs;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
-using WypisWyrys.Models;
+
 
 namespace WypisWyrys
 {
-    internal class Dockpane3ViewModel : DockPane
+    public class BeginDocumentGenerationViewModel : DockPane
     {
-        public static string _dockPaneID = "WypisWyrys_Dockpane3";
+        private const string _dockPaneID = "WypisWyrys_Dockpane1";
+        private static string name { get; set; }
+        protected BeginDocumentGenerationViewModel() {
+        }
 
-        protected Dockpane3ViewModel() { }
-
-        public static void Show()
+        /// <summary>
+        /// Show the DockPane.
+        /// </summary>
+        internal static void Show()
         {
             DockPane pane = FrameworkApplication.DockPaneManager.Find(_dockPaneID);
             if (pane == null)
-                return;
-            ((Dockpane3View)((Dockpane3ViewModel)pane).Content).getModels();
+                return; 
             pane.Activate();
+
         }
         public static void desactivatePane()
         {
             DockPane pane = FrameworkApplication.DockPaneManager.Find(_dockPaneID);
             pane.Hide();
         }
-        public List<ResolutionModel> getAcceptedModels()
-        {
-             return ((Dockpane3View)this.Content).modelsAccepted;
-        }
     }
 
-    
-
-    internal class Dockpane3_ShowButton : Button
+    internal class Dockpane1_ShowButton : Button
     {
         protected override void OnClick()
         {
-            Dockpane3ViewModel.Show();
+            DockPane pane = FrameworkApplication.DockPaneManager.Find(BasicInformationViewModel._dockPaneID);
+            pane.Hide();
+            BeginDocumentGenerationViewModel.Show();
         }
     }
+
+
+
+    /// <summary>
+    /// Button implementation for the button on the menu of the burger button.
+    /// </summary>
 }

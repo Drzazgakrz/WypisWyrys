@@ -19,15 +19,15 @@ using WypisWyrys.Models;
 
 namespace WypisWyrys
 {
-    internal class Step2ViewModel : DockPane
+    internal class MPZPListViewModel : DockPane
     {
         private const string _dockPaneID = "WypisWyrys_Step2";
 
-        protected Step2ViewModel() { }
+        protected MPZPListViewModel() { }
 
         public static void Show()
         {
-            Step2ViewModel pane = (Step2ViewModel)FrameworkApplication.DockPaneManager.Find(_dockPaneID);
+            MPZPListViewModel pane = (MPZPListViewModel)FrameworkApplication.DockPaneManager.Find(_dockPaneID);
             if (pane == null)
                 return;
 
@@ -39,13 +39,13 @@ namespace WypisWyrys
 
         public void fillTextBoxes()
         {
-            Dockpane2ViewModel pane2 = (Dockpane2ViewModel)FrameworkApplication.DockPaneManager.
-                Find(Dockpane2ViewModel._dockPaneID);
-            ((Step2View)this.Content).fillTextViews(pane2.model);
+            ParcelListViewModel pane2 = (ParcelListViewModel)FrameworkApplication.DockPaneManager.
+                Find(ParcelListViewModel._dockPaneID);
+            ((MPZPListView)this.Content).fillTextViews(pane2.model);
         }
         public static void desactivatePane()
         {
-            Step2ViewModel pane = (Step2ViewModel)FrameworkApplication.DockPaneManager.Find(_dockPaneID);
+            MPZPListViewModel pane = (MPZPListViewModel)FrameworkApplication.DockPaneManager.Find(_dockPaneID);
             pane.Hide();
         }
     }
@@ -54,7 +54,7 @@ namespace WypisWyrys
     {
         protected override void OnClick()
         {
-            Step2ViewModel.Show();
+            MPZPListViewModel.Show();
         }
     }
 }

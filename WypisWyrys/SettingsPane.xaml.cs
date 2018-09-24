@@ -1,4 +1,5 @@
-﻿using ArcGIS.Desktop.Framework.Threading.Tasks;
+﻿using ArcGIS.Desktop.Framework;
+using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
 using System;
 using System.Collections.Generic;
@@ -87,6 +88,32 @@ namespace WypisWyrys
                 return null;
             }
             
+        }
+
+        private void changeResolutionsSettings(object sender, RoutedEventArgs args)
+        {
+            ResolutionsSettingsViewModel.Show();
+        }
+
+        public void saveScale(object sender, RoutedEventArgs args)
+        {
+            try
+            {
+                int scaleValue = Convert.ToInt32(scale.Text);
+                string node = "scale";
+                XDocument document = XDocument.Load("config.xml");
+                if (document.Root.Element(node) == null)
+                {                    
+                    document.Root.Add(new XElement(node, scaleValue));
+                }                   
+                else
+                    document.Root.Element(node).ReplaceWith(new XElement(node, scaleValue));
+                document.Save("config.xml");
+            }
+            catch (System.IO.FileNotFoundException)
+            {
+                LayersSettingsForm.saveEmptyConfigFile();
+            }
         }
       
     }

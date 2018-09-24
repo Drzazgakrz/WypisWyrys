@@ -10,11 +10,11 @@ none
 false
 DEBUG;TRACE
 
-71151697024
+8-636324221
 
-37847072205
+39-214317646
 25-1752614733
-BasicInformation.xaml;Dockpane1.xaml;Dockpane2.xaml;Dockpane3.xaml;ownerInfo.xaml;SettingsPane.xaml;Step2.xaml;
+BasicInformation.xaml;BeginDocumentGenerationView.xaml;ParcelList.xaml;ResolutionList.xaml;OwnerInfo.xaml;ResolutionsSettings.xaml;SettingsPane.xaml;MPZPList.xaml;
 
 True
 

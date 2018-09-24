@@ -35,6 +35,11 @@ namespace WypisWyrys
         {
             InitializeComponent();
         }
+        public void initializeComponents()
+        {
+            date.Text = (DateTime.Now).Date.ToShortDateString();
+            receiveDate.Text = (DateTime.Now).Date.ToShortDateString();
+        }
         public BaseInfoModel basicInfos { get; set; }
         public List<ParcelModel> parcels { get; set; }
         public List<PrecintModel> precints { get; set; }
@@ -45,30 +50,10 @@ namespace WypisWyrys
         {
              try
              {
-                if (!getLists())
-                {
+                if (!checkData())
                     return;
-                }
-                if (mpzp == null || resolutions.Count == 0 || parcels.Count == 0)
-                {
-                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Brak danych na temat działki");
-                    return;
-                }
-                if (user == null)
-                {
-                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Wypełnij wszystkie pola dotyczące petenta");
-                    return;
-                }
                 Stream myStream;
-                SaveFileDialog saveFileDialog1 = new SaveFileDialog();
-
-                saveFileDialog1.Title = "Zapisz zaświadczenie";
-                saveFileDialog1.Filter = "Rich text document format (*.rtf)|*.rtf";
-                saveFileDialog1.FilterIndex = 0;
-                saveFileDialog1.RestoreDirectory = true;
-                if (saveFileDialog1.ShowDialog() == DialogResult.OK)
-                {
-                    if ((myStream = saveFileDialog1.OpenFile()) != null)
+                    if ((myStream = showWindow("Zapisz zaświadczenie", "Rich text document format (*.rtf)|*.rtf")) != null)
                     {
                         
                         string buffer = File.ReadAllText("certificate.rtf");
@@ -79,13 +64,11 @@ namespace WypisWyrys
                         editedFile = appendFooter(footer, editedFile);
                         if (editedFile!= null)
                         {
-                            File.WriteAllText(saveFileDialog1.FileName, editedFile);
-                            //myStream.Write(Encoding.ASCII.GetBytes(editedFile), 0, editedFile.Length);
+                            myStream.Write(Encoding.ASCII.GetBytes(editedFile), 0, editedFile.Length);
                             myStream.Close();
                         }
                         
-                    }
-                }
+                    }                
             }catch(FileNotFoundException)
             {
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Wystąpił błąd. Brakuje pliku z wzorem zaświadczenia. Wygeneruj taki zgodnie z dokumentacją i podaj ścieżkę do niego w ustawieniach.");
@@ -104,13 +87,13 @@ namespace WypisWyrys
             parcels = new List<ParcelModel>();
             precints = new List<PrecintModel>();
 
-            Dockpane2ViewModel dockpane = (Dockpane2ViewModel)FrameworkApplication.DockPaneManager.Find(Dockpane2ViewModel._dockPaneID);
-            ownerInfoViewModel pane = ((ownerInfoViewModel)FrameworkApplication.DockPaneManager.Find(ownerInfoViewModel._dockPaneID));
+            ParcelListViewModel dockpane = (ParcelListViewModel)FrameworkApplication.DockPaneManager.Find(ParcelListViewModel._dockPaneID);
+            OwnerInfoViewModel pane = ((OwnerInfoViewModel)FrameworkApplication.DockPaneManager.Find(OwnerInfoViewModel._dockPaneID));
             user = pane.getUserModel();
             precints = dockpane.precints;
             parcels = dockpane.parcels;
             mpzp = dockpane.model;
-            resolutions = ((Dockpane3ViewModel)FrameworkApplication.DockPaneManager.Find(Dockpane3ViewModel._dockPaneID)).getAcceptedModels();
+            resolutions = ((ResolutionListViewModel)FrameworkApplication.DockPaneManager.Find(ResolutionListViewModel._dockPaneID)).getAcceptedModels();
             return collectData();
         }
         public string editFile(string file)
@@ -153,11 +136,22 @@ namespace WypisWyrys
                 file = file.Remove(file.IndexOf("[[endeach"), 9);
             while (file.IndexOf("par rch") != -1)
                 file = file.Remove(file.IndexOf("par rch")+4, 3);
+            
+            while (file.IndexOf("[[legenda_rastrowa") != -1)
+            {
+                file = file.Remove(file.IndexOf("[[legenda_rastrowa]]"),20);
+            }
             while (file.IndexOf("]]") != -1)
             {
                 file = file.Remove(file.IndexOf("]]"), 2);
             }
-            
+
+            int place = file.LastIndexOf("phpar0");
+
+            if (place == -1)
+                return file;
+
+            file = file.Remove(place, 6).Insert(place, "\\phpar0");
             return file;
         }
         public string getParcelsData(string file)
@@ -180,7 +174,9 @@ namespace WypisWyrys
                 foreach (ParcelModel parcel in parcelsInPrecint)
                 {
                     parcel.parcel.TryGetValue(parcelsIdField, out result);
-                    parcelsNumbers += result.ToString() + ",";
+                    string parcelId = result.ToString();
+                    int index = parcelId.LastIndexOf('.');
+                    parcelsNumbers += parcelId.Substring(index, parcelId.Length - index) + ",";
                 }
 
                 parcelsString += model.Replace("[[nry_dzialek]],", StringUtil.ToRtfString(parcelsNumbers)).
@@ -213,8 +209,10 @@ namespace WypisWyrys
                  {
                     string parcelsIdFieldName = LayersSettingsForm.getConfig("Działki", "parcelsId");
                     parcel.parcel.TryGetValue(parcelsIdFieldName, out result);
-                    parcelsNumber += StringUtil.ToRtfString(result.ToString()) + " ";
-                 }
+                    string parcelId = result.ToString();
+                    int index = parcelId.LastIndexOf('.')+1;
+                    parcelsNumber += parcelId.Substring(index, parcelId.Length - index) + ",";
+                }
                 string destiantionFiledName = LayersSettingsForm.getConfig("Wydzielenia", "precintDestination");
                 resolution.resolution.TryGetValue(destiantionFiledName, out result);
                 object detailsResult = null;
@@ -250,7 +248,7 @@ namespace WypisWyrys
                 png.OutputFileName = System.IO.Path.GetTempPath() + "\\map.png";
                 MapView.Active.Export(png);
             });
-            task.Wait();
+            task.Wait(TimeSpan.FromSeconds(20));
             System.Drawing.Image img = System.Drawing.Image.FromFile(System.IO.Path.GetTempPath() + "\\map.png");
             MemoryStream stream = new MemoryStream();
             img.Save(stream, img.RawFormat);
@@ -290,6 +288,18 @@ namespace WypisWyrys
             {
                 string rowBg = (i % 2 == 0) ? "\\clcbpat2" : "\\clcbpat3";
                 string parcelsIdField = LayersSettingsForm.getConfig("Działki", "parcelsId");
+                string areaNameField = LayersSettingsForm.getConfig("Obręby", "areaName");
+                object areaName = null;
+                var area = precints.Where((precint) =>
+                {
+                    object resultShape = null;
+                    precint.precint.TryGetValue("Shape", out resultShape);
+                    ArcGIS.Core.Geometry.Polygon polygon = (ArcGIS.Core.Geometry.Polygon)resultShape;
+                    parcel.parcel.TryGetValue("Shape", out resultShape);
+                    ArcGIS.Core.Geometry.Polygon parcelPolygon = (ArcGIS.Core.Geometry.Polygon)resultShape;
+                    return !GeometryEngine.Instance.Intersection(polygon, parcelPolygon).IsEmpty;
+                }).First();
+                area.precint.TryGetValue(areaNameField, out areaName);          
                 object result = null;
                 parcel.parcel.TryGetValue(parcelsIdField, out result);
                 var array = result.ToString().Split('.');
@@ -297,7 +307,7 @@ namespace WypisWyrys
                 rowBg + "\\clvertalc\\cellx4000 " +
                 rowBg + "\\clvertalc\\cellx5000 " +
                 rowBg + "\\clvertalc\\cellx7000 " +
-                result.ToString() + " \\intbl\\cell " +
+                StringUtil.ToRtfString(areaName.ToString()) + " \\intbl\\cell " +
                 array[1].TrimStart(new Char[] { '0' }) + " \\intbl\\cell " +
                 array[2] + " \\intbl\\cell " +
                 "\\row ";
@@ -306,11 +316,26 @@ namespace WypisWyrys
             podsumowanieTable += "}";
 
             file = file.Replace("[[podsumowanie_tabela]]", podsumowanieTable);
+
             string legendFieldName = LayersSettingsForm.getConfig("MPZP", "MPZPLegend");
-            object legend = null;
-            mpzp.mpzp.TryGetValue(legendFieldName, out legend);
-            //file = file.Replace("[[legenda_rastrowa]]", ((Raster)legend).ToString());
-            //ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show((legend.GetType()).ToString());
+
+            Object legend = null;
+            mpzp.mpzp.TryGetValue("legend", out legend);
+
+            Object legendSize = null;
+            mpzp.mpzp.TryGetValue("legendSize", out legendSize);
+
+            string str = BitConverter.ToString((byte[])legend, 0).Replace("-", string.Empty);
+        
+            string rtfImageStr = @"{\pict\pngblip\picw" +
+    ((System.Drawing.Size)legendSize).Width + @"\pich" + (((System.Drawing.Size)legendSize).Height * 10) +
+    @"\picwgoal" + (((System.Drawing.Size)legendSize).Width * 10) + @"\pichgoal" + (((System.Drawing.Size)legendSize).Height * 10) +
+    str + "}";
+            while(file.IndexOf("[[legenda_rastrowa]]")!= file.LastIndexOf("[[legenda_rastrowa]]")){
+               // ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("of[awkj[pk");
+                file = file.Remove(file.LastIndexOf("[[legenda_rastrowa]]"), 20);
+            }
+            file = file.Replace("[[legenda_rastrowa]]", rtfImageStr);
             file = convertMapToString(file);
             file = removeStrings(file);
             return file;            
@@ -327,32 +352,57 @@ namespace WypisWyrys
                 string price2 = this.price2.Text;
                 this.basicInfos = new BaseInfoModel(caseSign, location,community, date,null, price, price2);
                 return true;
-            }catch(Exception e)
+            }catch(Exception)
             {
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Wypełnij odpowiednie pola dotyczące sprawy");
                 return false;
             }            
         }
+
+        public Stream showWindow(string title, string filter)
+        {
+            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+            saveFileDialog1.Title = title;
+            saveFileDialog1.Filter = filter;
+            saveFileDialog1.FilterIndex = 0;
+            saveFileDialog1.RestoreDirectory = true;
+            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                return saveFileDialog1.OpenFile();
+            }
+            return null;
+        }
+        public bool checkData()
+        {
+            if (!getLists())
+            {
+                return false;
+            }
+            if (mpzp == null || resolutions == null || parcels == null || resolutions.Count == 0 || parcels.Count == 0)
+            {
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Brak danych na temat działki");
+                return false;
+            }
+            if (user == null)
+            {
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Wypełnij wszystkie pola dotyczące petenta");
+                return false;
+            }           
+            if (this.basicInfos.date > DateTime.Now)
+            {
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Data utworzenia powinna być mniejsza od dzisiejszej daty");
+                return false;
+            }
+            return true;
+        }
         public void generateDocument(object sender, RoutedEventArgs e)
         {
             try
             {
-                if (!getLists())
-                {
+                if (!checkData())
                     return;
-                }
-                if(mpzp == null || resolutions == null || parcels == null || resolutions.Count==0|| parcels.Count==0)
-                {
-                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Brak danych na temat działki");
-                    return;
-                }
-                if (user == null)
-                {
-                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Wypełnij wszystkie pola dotyczące petenta");
-                    return;
-                }
                 this.basicInfos.receiveDate = DateTime.Parse(this.receiveDate.Text);
-                if(this.basicInfos.receiveDate > this.basicInfos.date)
+                if (this.basicInfos.receiveDate > this.basicInfos.date)
                 {
                     ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Data otrzymania powinna być mniejsza od daty utworzenia");
                     return;
@@ -362,54 +412,51 @@ namespace WypisWyrys
                     ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Data otrzymania powinna być mniejsza od dzisiejszej daty");
                     return;
                 }
-                if (this.basicInfos.date > DateTime.Now)
-                {
-                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Data utworzenia powinna być mniejsza od dzisiejszej daty");
-                    return;
-                }
                 Stream myStream;
-                SaveFileDialog saveFileDialog1 = new SaveFileDialog();
-                saveFileDialog1.Title = "Zapisz wypis i wyrys";
-                saveFileDialog1.Filter = "Rich text document format (*.rtf)|*.rtf";
-                saveFileDialog1.FilterIndex = 0;
-                saveFileDialog1.RestoreDirectory = true;
-                if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+                if ((myStream = showWindow("Zapisz wypis i wyrys", "Rich text document format (*.rtf)|*.rtf")) != null)
                 {
-                    if ((myStream = saveFileDialog1.OpenFile()) != null)
+                    List<MapPoint> points = new List<MapPoint>();
+                    foreach (ParcelModel parcel in parcels)
                     {
-                        List<MapPoint> points = new List<MapPoint>();
-                        foreach (ParcelModel parcel in parcels)
+                        object result = null;
+                        parcel.parcel.TryGetValue("Shape", out result);
+                        foreach (MapPoint point in ((ArcGIS.Core.Geometry.Polygon)result).Points)
                         {
-                            object result = null;
-                            parcel.parcel.TryGetValue("Shape", out result);
-                            foreach (MapPoint point in ((ArcGIS.Core.Geometry.Polygon)result).Points)
-                            {
-                                points.Add(point);
-                            }
+                            points.Add(point);
                         }
-
-                        Task t = QueuedTask.Run(() =>
+                    }
+                    Task t = QueuedTask.Run(() =>
+                    {
+                        string scale;
+                        
+                        if ((scale = LayersSettingsForm.getConfig("scale", null)) != null)
                         {
+                            Camera camera = MapView.Active.Camera;
+                            camera.Scale = Convert.ToDouble(scale);
                             ArcGIS.Core.Geometry.Polygon polygon = PolygonBuilder.CreatePolygon(points);
-                            MapView.Active.ZoomTo(polygon);
-                            
-                        });
-                        t.Wait();
-
-                        Thread.Sleep(20000);
-
-                        string buffer = File.ReadAllText("document.rtf");
-                        string editedFile = editDocument(buffer);
-                        string footer = File.ReadAllText("documentFooter.rtf");
-                        footer = this.createFooter(footer);
-                        editedFile = appendFooter(footer, editedFile);
-
-                        if (editedFile!= null && editedFile.Length>0)
+                            MapPoint center = polygon.Extent.Center;
+                            camera.X = center.X;
+                            camera.Y = center.Y;
+                            MapView.Active.ZoomTo(camera);
+                        }
+                        else
                         {
-                            System.Windows.Forms.RichTextBox rtf = new System.Windows.Forms.RichTextBox();
-                            myStream.Write(Encoding.ASCII.GetBytes(editedFile), 0, editedFile.Length);
-                            myStream.Close();
-                        }                        
+                            MapView.Active.ZoomToSelected();
+                        }              
+                    });
+                    t.Wait();
+
+                    string buffer = File.ReadAllText("document.rtf");
+                    string editedFile = editDocument(buffer);
+                    string footer = File.ReadAllText("documentFooter.rtf");
+                    footer = this.createFooter(footer);
+                    editedFile = appendFooter(footer+"\\par}{", editedFile);
+
+                    if (editedFile != null && editedFile.Length > 0)
+                    {
+                        System.Windows.Forms.RichTextBox rtf = new System.Windows.Forms.RichTextBox();
+                        myStream.Write(Encoding.ASCII.GetBytes(editedFile), 0, editedFile.Length);
+                        myStream.Close();
                     }
                 }
             }
@@ -421,27 +468,25 @@ namespace WypisWyrys
             {
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Zbyt długa ścieżka. Popraw ją i spróbuj ponownie.");
             }
-            /*catch (Exception)
+            catch (Exception)
             {
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Wystąpił niezidentyfikowany błąd. Sprawdź czy masz odpowiednią ilość miejsca na dysku i czy oznaczenia zgadzają się z tymi w dokumentacji.");
-            }*/
+            }
         }
         private string createFooter(string file)
         {
-            file = file.Remove(file.IndexOf("{\\rtf1"), 6);
-            file = file.Remove(file.LastIndexOf('}'));
             file = file.Replace("[[oplata_kwota]]", this.basicInfos.price.ToString());
             return file.Replace("[[oplata_slownie]]", this.basicInfos.price2);
         }        
         private string appendFooter(string footer, string document)
         {            
             int documentEndIndex = document.IndexOf("{\\rtf1")+6;
-            return document.Substring(0, documentEndIndex)+ "{\\footer\\pard " +footer+ " \\par}"+ document.Substring(documentEndIndex, document.Length - documentEndIndex);
+            return document.Substring(0, documentEndIndex)+ "{\\footer\\pard " +footer + document.Substring(documentEndIndex, document.Length - documentEndIndex);
             // document.Substring(documentEndIndex)
         }
         private void goBack(object sender, RoutedEventArgs e)
         {
-            ownerInfoViewModel.Show();
+            OwnerInfoViewModel.Show();
             BasicInformationViewModel.desactivatePane();
         }
     }

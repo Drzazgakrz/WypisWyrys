@@ -2,7 +2,7 @@
 <root>
   <MPZP>
     <MPZPlayer>granica_MPZP_Janow</MPZPlayer>
-    <MPZPId>OBJECTID</MPZPId>
+    <MPZPId>nazwa</MPZPId>
     <MPZPResolution>nr_uchwaly</MPZPResolution>
     <MPZPDiaryName>dziennik_w</MPZPDiaryName>
     <MPZPLegend>legenda</MPZPLegend>
@@ -30,4 +30,5 @@
     <certificateFooterPath>C:\Users\szkolenie\Desktop\WypisWyrys_ArcGIS\wypis_wyrys _v2\przykladowe-szablony\szablon_stopki.rtf</certificateFooterPath>
     <documentFooterPath>C:\Users\szkolenie\Desktop\WypisWyrys_ArcGIS\wypis_wyrys _v2\przykladowe-szablony\szablon_stopki.rtf</documentFooterPath>
   </paths>
+  <scale>5000</scale>
 </root>
