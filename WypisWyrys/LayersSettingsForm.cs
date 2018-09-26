@@ -21,9 +21,11 @@ namespace WypisWyrys
     public partial class LayersSettingsForm : Form
     {
         private int currentTab = 0;
+        private Config config;
         public LayersSettingsForm()
         {
             InitializeComponent();
+            config = new Config();
             this.Text = "Ustawienia warstw";
             getLayers();
         }
@@ -42,39 +44,39 @@ namespace WypisWyrys
                 layersNames[i] = layer.Name;
                 i++;
             }
-            if (getConfig("Działki", "parcelsLayer") == null)
+            if (config.getConfig("Działki", "parcelsLayer") == null)
             {
                 control.TabPages.Add(createParcels(null));
             }
-            if (getConfig("MPZP", "MPZPlayer") == null)
+            if (config.getConfig("MPZP", "MPZPlayer") == null)
             {
                 control.TabPages.Add(createMPZP(null));
             }
-            if (getConfig("Wydzielenia", "precintLayer") == null)
+            if (config.getConfig("Wydzielenia", "precintLayer") == null)
             {
                 control.TabPages.Add(createResolution(null));
             }
-            if (getConfig("Obręby", "areaLayer") == null)
+            if (config.getConfig("Obręby", "areaLayer") == null)
             {
                 control.TabPages.Add(createArea(null));
             }
             foreach (Layer layer in layers)
             {
 
-                if (layer.Name.Equals(getConfig("Działki", "parcelsLayer")))
+                if (layer.Name.Equals(config.getConfig("Działki", "parcelsLayer")))
                 {
                     control.TabPages.Add(createParcels((FeatureLayer)layer));
                 }
 
-                if (layer.Name.Equals(getConfig("MPZP", "MPZPlayer")))
+                if (layer.Name.Equals(config.getConfig("MPZP", "MPZPlayer")))
                 {
                     control.TabPages.Add(createMPZP((FeatureLayer)layer));
                 }
-                if (layer.Name.Equals(getConfig("Wydzielenia", "precintLayer")))
+                if (layer.Name.Equals(config.getConfig("Wydzielenia", "precintLayer")))
                 {
                     control.TabPages.Add(createResolution((FeatureLayer)layer));
                 }
-                if (layer.Name.Equals(getConfig("Obręby", "areaLayer")))
+                if (layer.Name.Equals(config.getConfig("Obręby", "areaLayer")))
                 {
                     control.TabPages.Add(createArea((FeatureLayer)layer));
                 }
@@ -201,10 +203,10 @@ namespace WypisWyrys
                 {
                     list.Items.Add(element);
                 }
-                string selected = getConfig(parent, cellName);
+                string selected = config.getConfig(parent, cellName);
                 if (selected != null)
                 {
-                    list.SelectedItem = getConfig(parent, cellName);
+                    list.SelectedItem = config.getConfig(parent, cellName);
                 }                
                 return list;
             }
@@ -250,90 +252,17 @@ namespace WypisWyrys
             getLayers();
         }
         public void saveConfig(System.Windows.Forms.ComboBox comboBox)
-        {
-            
+        {            
             string currentField = comboBox.SelectedItem.ToString();
             string parent = ((comboBox.Parent).Parent).Text;
             string comboboxName = comboBox.Name;
-            iterator = 0;
             currentTab = this.control.SelectedIndex;
-            setConfig(parent, comboboxName, currentField);
+            config.setConfig(parent, comboboxName, currentField);
         }
         public void getValue(object sender, EventArgs e)
         {
             System.Windows.Forms.ComboBox comboBox = (System.Windows.Forms.ComboBox)sender;
             saveConfig(comboBox);
-        }
-        private int iterator = 0;
-        public void setConfig(string parent, string node, string value)
-        {
-            try
-            {
-                XDocument document = XDocument.Load("config.xml");
-                if (document.Root.Element(parent).Element(node) == null)
-                {
-                    if(document.Root.Element(parent) == null)
-                        document.Root.Add(new XElement(parent, ""));
-                    document.Root.Element(parent).Add(new XElement(node, value));
-                }                   
-                else
-                    document.Root.Element(parent).Element(node).ReplaceWith(new XElement(node, value));
-                document.Save("config.xml");                
-            }
-            catch (System.IO.FileNotFoundException e)
-            {
-                if(saveEmptyConfigFile())
-                {
-                    
-                    setConfig(parent, node, value);
-                }
-                else if (iterator == 3)
-                {
-                    MessageBox.Show("Nie udało się zapisać konfiguracji.");
-                }
-                else
-                {
-                    iterator++;
-                }
-            }
-        }
-        public static bool saveEmptyConfigFile()
-        {
-            try
-            {
-                new XDocument(
-                        new XElement("root",
-                            new XElement("MPZP", ""),
-                            new XElement("Działki", ""),
-                            new XElement("Wydzielenia", ""),
-                            new XElement("Obręby", ""),
-                            new XElement("paths", ""),
-                            new XElement("scale", "")
-                        )
-                    ).Save("config.xml");
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }        
-            
-        }
-        public static string getConfig(string parent, string field)
-        {
-            try
-            {
-                XDocument document = XDocument.Load("config.xml");
-                if (field != null)
-                    return document.Root.Element(parent).Element(field).Value;
-                else
-                    return document.Root.Element(parent).Value;
-            }
-            catch (Exception e)
-            {
-                return null;
-            }
-
-        }
+        }  
     }
 }

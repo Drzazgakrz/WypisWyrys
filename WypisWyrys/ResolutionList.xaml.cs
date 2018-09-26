@@ -25,8 +25,10 @@ namespace WypisWyrys
     {
         public List<ResolutionModel> modelsAccepted { get; set; }
         public List<ParcelModel> parcels { get; set; }
+        private Config config;
         public ResolutionListView()
         {
+            config = new Config();
             InitializeComponent();
            
         }
@@ -51,6 +53,12 @@ namespace WypisWyrys
         {            
              current.resolutions = ((ResolutionsWindow)sender).models;
         }
+
+        public void emptyListView()
+        {
+            this.primaryNavigator.Items.Clear();
+        }
+
         private ParcelModel current;
         public void addResolutionsToParcel(ParcelModel currentParcel)
         {
@@ -91,7 +99,7 @@ namespace WypisWyrys
             System.Windows.Controls.TextBox parcelId = new System.Windows.Controls.TextBox();
             parcelId.IsReadOnly = true;
             parcelId.Name = "parcelId";
-            parcelIdField = LayersSettingsForm.getConfig("Działki", "parcelsId");
+            parcelIdField = config.getConfig("Działki", "parcelsId");
             panel.Children.Add(parcelId);
             object result = null;
             parcel.parcel.TryGetValue(parcelIdField, out result);
@@ -134,7 +142,7 @@ namespace WypisWyrys
             ParcelModel parcel = parcels.Where((singleParcel) =>
             {
                 object id = null;
-                string identifier = LayersSettingsForm.getConfig("Działki", "parcelsId");
+                string identifier = config.getConfig("Działki", "parcelsId");
                 singleParcel.parcel.TryGetValue(identifier, out id);
                 return parcelId.Equals(id.ToString());
             }).First();

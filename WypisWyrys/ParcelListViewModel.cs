@@ -57,7 +57,7 @@ namespace WypisWyrys
         }
         public void desactivatePane()
         {
-            if(parcels != null)
+            if(checkProperties())
             {
                 MapClick.isDockpaneActive = false;
                 MPZPListViewModel.Show();
@@ -67,6 +67,18 @@ namespace WypisWyrys
             }
             ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Wybierz jakąś działkę");
             
+        }
+        public bool checkProperties()
+        {
+            try
+            {
+                if (parcels.Count > 0 && model.Count > 0 && resolution.Count > 0 && precints.Count > 0)
+                    return true;
+            }
+            catch (Exception) { }
+            return false;
+
+
         }
         public void resetPane()
         {

@@ -1,5 +1,6 @@
 ﻿using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
+using ArcGIS.Desktop.Mapping;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,8 +21,10 @@ namespace WypisWyrys
 {
     public partial class MPZPListView : UserControl
     {
+        private Config config;
         public MPZPListView()
         {
+            config = new Config();
             InitializeComponent();
         }
 
@@ -35,7 +38,8 @@ namespace WypisWyrys
             parcels = MapClick.parcel;
             try
             {
-                this.models = model;
+                if(models == null || models.Count == 0)
+                    this.models = model;
                 var i = 0;
                 foreach(MPZPModel currentModel in model)
                 {
@@ -47,7 +51,7 @@ namespace WypisWyrys
             {
                 MessageBox.Show("Wybierz działkę");
             }
-        }
+        }        
 
         private TextBox createTextBox(MPZPModel mpzp, string parent, string child, string name)
         {
@@ -56,7 +60,7 @@ namespace WypisWyrys
             MPZPTextBox.Width = 150;
             MPZPTextBox.Name = name;
             object result = null;
-            string MPZPIdField = LayersSettingsForm.getConfig(parent, child);
+            string MPZPIdField = config.getConfig(parent, child);
             mpzp.mpzp.TryGetValue(MPZPIdField, out result);
             MPZPTextBox.Text = result.ToString();
             return MPZPTextBox;
@@ -96,7 +100,7 @@ namespace WypisWyrys
             model = models.Where((mpzp) =>
             {
                 object result = null;
-                mpzp.mpzp.TryGetValue(LayersSettingsForm.getConfig("MPZP", "MPZPId"), out result);
+                mpzp.mpzp.TryGetValue(config.getConfig("MPZP", "MPZPId"), out result);
                 return (text.Equals(result.ToString()));
             }).First();
             getIntersectedData();
@@ -112,12 +116,12 @@ namespace WypisWyrys
         public void nextPane()
         {
             ResolutionListViewModel.Show();
-            clearList();
             MPZPListViewModel.desactivatePane();
         }
         public void goBack(object sender, RoutedEventArgs e)
         {
             ParcelListViewModel.Show();
+            this.clearList();
             MPZPListViewModel.desactivatePane();
         }
         public void getIntersectedData()
@@ -127,6 +131,7 @@ namespace WypisWyrys
             model.mpzp.TryGetValue("Shape", out result);
             Task t = QueuedTask.Run(() =>
             {
+                MapView.Active.ZoomTo((ArcGIS.Core.Geometry.Polygon)result);
                 parcelsInMPZP = parcels.Where((parcel) =>
                 {
                     object parcelsShape = null;

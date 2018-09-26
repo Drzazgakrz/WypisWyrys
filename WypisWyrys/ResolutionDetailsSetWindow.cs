@@ -16,12 +16,16 @@ namespace WypisWyrys
     public partial class ResolutionDetailsSetWindow : Form
     {
         string selectedName;
-        public ResolutionDetailsSetWindow(string selectedName)
+        string symbolRegex;
+        private Config config;
+        public ResolutionDetailsSetWindow(string selectedName, string symbolRegex)
         {
+            config = new Config();
             InitializeComponent();
             this.Text = "Edytuj opis wydzielenia";
             this.Width = 550;
             this.Height = 600;
+            this.symbolRegex = symbolRegex;
             this.selectedName = selectedName;
             TableLayoutPanel panel = new TableLayoutPanel();
             panel.Width = 550;
@@ -39,7 +43,7 @@ namespace WypisWyrys
         public BasicFeatureLayer getLayer()
         {
             var layers = MapView.Active.Map.Layers;
-            string layerName = LayersSettingsForm.getConfig("Wydzielenia", "precintLayer");
+            string layerName = config.getConfig("Wydzielenia", "precintLayer");
             return (BasicFeatureLayer)layers.Where((currentLayer) =>
             {
                 return currentLayer.Name.Equals(layerName);
@@ -51,8 +55,9 @@ namespace WypisWyrys
             var layer = getLayer();
             Table table = layer.GetTable();
             QueryFilter filter = new QueryFilter();
-            string precintSymbolField = LayersSettingsForm.getConfig("Wydzielenia", "precintSymbol");
-            filter.WhereClause = precintSymbolField + "=" + this.selectedName;
+            string precintSymbolField = config.getConfig("Wydzielenia", "precintSymbol");
+            string precintResolutionField = config.getConfig("Wydzielenia", "precintResolution");
+            filter.WhereClause = precintSymbolField + " LIKE " + this.symbolRegex+" AND "+precintResolutionField+" = '"+this.selectedName+"'";
             return table.Search(filter);
         }
 
@@ -65,7 +70,7 @@ namespace WypisWyrys
                 var results = createRow();
                 results.MoveNext();
                 var current = results.Current;
-                string precintDetailsField = LayersSettingsForm.getConfig("Wydzielenia", "precintDetails");
+                string precintDetailsField = config.getConfig("Wydzielenia", "precintDetails");
                 int fieldName = results.FindField(precintDetailsField);
                 var value = current.GetOriginalValue(fieldName);
                 this.resolutionDetails = value.ToString();
@@ -112,7 +117,7 @@ namespace WypisWyrys
                 // load features into inspector and update field
                 var insp = new ArcGIS.Desktop.Editing.Attributes.Inspector();
                 insp.Load(disLayer, oidSet);
-                insp[LayersSettingsForm.getConfig("Wydzielenia", "precintDetails")] = rtfValue;
+                insp[config.getConfig("Wydzielenia", "precintDetails")] = rtfValue;
 
                 // modify and execute
                 op.Modify(insp);

@@ -33,6 +33,7 @@ namespace WypisWyrys
     {
         public BasicInformationView()
         {
+            this.config = new Config();
             InitializeComponent();
         }
         public void initializeComponents()
@@ -40,6 +41,7 @@ namespace WypisWyrys
             date.Text = (DateTime.Now).Date.ToShortDateString();
             receiveDate.Text = (DateTime.Now).Date.ToShortDateString();
         }
+        private Config config;
         public BaseInfoModel basicInfos { get; set; }
         public List<ParcelModel> parcels { get; set; }
         public List<PrecintModel> precints { get; set; }
@@ -66,6 +68,7 @@ namespace WypisWyrys
                         {
                             myStream.Write(Encoding.ASCII.GetBytes(editedFile), 0, editedFile.Length);
                             myStream.Close();
+                            goBackToMPZP();
                         }
                         
                     }                
@@ -108,7 +111,7 @@ namespace WypisWyrys
         private string editHeader(string file)
         {
             object result = null;
-            string resolutionNumberField = LayersSettingsForm.getConfig("Wydzielenia","precintResolution");
+            string resolutionNumberField = config.getConfig("Wydzielenia","precintResolution");
             this.resolutions.First().resolution.TryGetValue(resolutionNumberField, out result);
             file = file.Replace("[[data_podania]]", StringUtil.ToRtfString(this.basicInfos.receiveDate.ToShortDateString()));
             file = file.Replace("[[nr_uchwaly]]", StringUtil.ToRtfString(result.ToString()));
@@ -117,7 +120,7 @@ namespace WypisWyrys
             file = file.Replace("[[miejscowosc]]", StringUtil.ToRtfString(this.basicInfos.location));
             file = file.Replace("[[data]]", (basicInfos.date.ToShortDateString()));
             file = file.Replace("[[gmina]]", StringUtil.ToRtfString(this.basicInfos.location));
-            string mpzpNameField = LayersSettingsForm.getConfig("MPZP", "MPZPName");
+            string mpzpNameField = config.getConfig("MPZP", "MPZPName");
             this.mpzp.mpzp.TryGetValue(mpzpNameField, out result);
             file = file.Replace("[[nazwa_mpzp]]", StringUtil.ToRtfString(result.ToString()));
             return file;
@@ -163,10 +166,10 @@ namespace WypisWyrys
             object result = null;
             foreach (PrecintModel precint in precints)
             {
-                string name = LayersSettingsForm.getConfig("Obręby", "areaName");
+                string name = config.getConfig("Obręby", "areaName");
                 precint.precint.TryGetValue(name, out result);
                 string precintName = result.ToString();
-                string parcelsIdField = LayersSettingsForm.getConfig("Działki", "parcelsId");
+                string parcelsIdField = config.getConfig("Działki", "parcelsId");
                 List<ParcelModel> parcelsInPrecint = (parcels.Where((parcel) => {
                     parcel.parcel.TryGetValue(parcelsIdField, out result);
                     return result.ToString().Contains(precintName); })).ToList();
@@ -201,22 +204,22 @@ namespace WypisWyrys
                  }).ToList();
                 if (parcelsInResolution.Count == 0)
                     continue;
-                 string symbolName = LayersSettingsForm.getConfig("Wydzielenia", "precintSymbol");
+                 string symbolName = config.getConfig("Wydzielenia", "precintSymbol");
                  resolution.resolution.TryGetValue(symbolName, out result);
                  string resolutionText = model.Replace("[[symbol_przeznaczenia]]", result.ToString());
                  string parcelsNumber = "";
                  foreach (ParcelModel parcel in parcelsInResolution)
                  {
-                    string parcelsIdFieldName = LayersSettingsForm.getConfig("Działki", "parcelsId");
+                    string parcelsIdFieldName = config.getConfig("Działki", "parcelsId");
                     parcel.parcel.TryGetValue(parcelsIdFieldName, out result);
                     string parcelId = result.ToString();
                     int index = parcelId.LastIndexOf('.')+1;
                     parcelsNumber += parcelId.Substring(index, parcelId.Length - index) + ",";
                 }
-                string destiantionFiledName = LayersSettingsForm.getConfig("Wydzielenia", "precintDestination");
+                string destiantionFiledName = config.getConfig("Wydzielenia", "precintDestination");
                 resolution.resolution.TryGetValue(destiantionFiledName, out result);
                 object detailsResult = null;
-                string detailsFiledName = LayersSettingsForm.getConfig("Wydzielenia", "precintDetails");
+                string detailsFiledName = config.getConfig("Wydzielenia", "precintDetails");
                 resolution.resolution.TryGetValue(detailsFiledName, out detailsResult);
                 assume += resolutionText.Replace("[[przeznaczenie]]", StringUtil.ToRtfString(result.ToString())).
                     Replace("[[nry_dzialek_w_symbolu]]", parcelsNumber).
@@ -287,8 +290,8 @@ namespace WypisWyrys
             foreach (ParcelModel parcel in parcels)
             {
                 string rowBg = (i % 2 == 0) ? "\\clcbpat2" : "\\clcbpat3";
-                string parcelsIdField = LayersSettingsForm.getConfig("Działki", "parcelsId");
-                string areaNameField = LayersSettingsForm.getConfig("Obręby", "areaName");
+                string parcelsIdField = config.getConfig("Działki", "parcelsId");
+                string areaNameField = config.getConfig("Obręby", "areaName");
                 object areaName = null;
                 var area = precints.Where((precint) =>
                 {
@@ -317,7 +320,7 @@ namespace WypisWyrys
 
             file = file.Replace("[[podsumowanie_tabela]]", podsumowanieTable);
 
-            string legendFieldName = LayersSettingsForm.getConfig("MPZP", "MPZPLegend");
+            string legendFieldName = config.getConfig("MPZP", "MPZPLegend");
 
             Object legend = null;
             mpzp.mpzp.TryGetValue("legend", out legend);
@@ -428,7 +431,7 @@ namespace WypisWyrys
                     {
                         string scale;
                         
-                        if ((scale = LayersSettingsForm.getConfig("scale", null)) != null)
+                        if ((scale = config.getConfig("scale", null)) != null)
                         {
                             Camera camera = MapView.Active.Camera;
                             camera.Scale = Convert.ToDouble(scale);
@@ -456,6 +459,7 @@ namespace WypisWyrys
                         System.Windows.Forms.RichTextBox rtf = new System.Windows.Forms.RichTextBox();
                         myStream.Write(Encoding.ASCII.GetBytes(editedFile), 0, editedFile.Length);
                         myStream.Close();
+                        goBackToMPZP();
                     }
                 }
             }
@@ -467,10 +471,10 @@ namespace WypisWyrys
             {
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Zbyt długa ścieżka. Popraw ją i spróbuj ponownie.");
             }
-            /*catch (Exception)
+            catch (Exception)
             {
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Wystąpił niezidentyfikowany błąd. Sprawdź czy masz odpowiednią ilość miejsca na dysku i czy oznaczenia zgadzają się z tymi w dokumentacji.");
-            }*/
+            }
         }
         private string createFooter(string file)
         {
@@ -486,6 +490,14 @@ namespace WypisWyrys
         {
             OwnerInfoViewModel.Show();
             BasicInformationViewModel.desactivatePane();
+        }
+
+        private void goBackToMPZP()
+        {
+            BasicInformationViewModel pane = (BasicInformationViewModel)FrameworkApplication.DockPaneManager.Find(BasicInformationViewModel._dockPaneID);
+            pane.Hide();
+            MPZPListViewModel mpzpPane = (MPZPListViewModel)FrameworkApplication.DockPaneManager.Find(MPZPListViewModel._dockPaneID);
+            mpzpPane.Activate();
         }
     }
 }

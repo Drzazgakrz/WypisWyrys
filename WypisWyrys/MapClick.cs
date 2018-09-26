@@ -26,9 +26,10 @@ namespace WypisWyrys
 {
     class MapClick : MapTool
     {
-
+        private Config config;
         public MapClick()
         {
+            config = new Config();
             IsSketchTool = true;
             SketchType = SketchGeometryType.Multipoint;
             SketchOutputMode = SketchOutputMode.Screen;
@@ -53,12 +54,12 @@ namespace WypisWyrys
                 var layersTOC = ArcGIS.Desktop.Mapping.MapView.Active.Map.GetLayersAsFlattenedList();
             FeatureLayer parcelsLayer = (FeatureLayer)layersTOC.Where((layer) =>
             {
-                return layer.Name.Contains(LayersSettingsForm.getConfig("Działki", "parcelsLayer"));
+                return layer.Name.Contains(config.getConfig("Działki", "parcelsLayer"));
             }).First();
             var parcels = ArcGIS.Desktop.Mapping.MapView.Active.Map.GetLayersAsFlattenedList();
             foreach (var f in parcels)
             {
-                var feat = f.Name.Equals(LayersSettingsForm.getConfig("Działki", "parcelsLayer"));
+                var feat = f.Name.Equals(config.getConfig("Działki", "parcelsLayer"));
                 if (feat)
                 {
                     this.parcellayer = (FeatureLayer)f;
@@ -78,15 +79,15 @@ namespace WypisWyrys
                 try
                 {
                     FeatureLayer fLayer = (FeatureLayer)layer; 
-                    if (fLayer.Name.Contains(LayersSettingsForm.getConfig("MPZP", "MPZPlayer")))
+                    if (fLayer.Name.Contains(config.getConfig("MPZP", "MPZPlayer")))
                     {
                         this.getMPZP(fLayer, geometry, dimension);
                     }
-                    else if (fLayer.Name.Contains(LayersSettingsForm.getConfig("Wydzielenia", "precintLayer")))
+                    else if (fLayer.Name.Contains(config.getConfig("Wydzielenia", "precintLayer")))
                     { 
                         this.getResolution(fLayer, geometry, dimension);
                     }
-                    else if (fLayer.Name.Contains(LayersSettingsForm.getConfig("Obręby", "areaLayer")))
+                    else if (fLayer.Name.Contains(config.getConfig("Obręby", "areaLayer")))
                     {
                         this.getPrecints(fLayer, geometry, dimension);
                     }
@@ -250,7 +251,7 @@ namespace WypisWyrys
             foreach (long id in precintsList)
             {
                 var filter = new QueryFilter();
-                string idField = LayersSettingsForm.getConfig("Obręby", "areaId");
+                string idField = config.getConfig("Obręby", "areaId");
                 filter.WhereClause = idField + "=" + id;
                 var selection = layer.GetTable();
                 var wydzielenia = selection.Search(filter);

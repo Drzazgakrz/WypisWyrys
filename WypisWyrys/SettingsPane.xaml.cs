@@ -31,8 +31,10 @@ namespace WypisWyrys
     public partial class SettingsPaneView : System.Windows.Controls.UserControl
     {
         private ReadOnlyObservableCollection<Layer> layers;
+        private Config config;
         public SettingsPaneView()
         {
+            config = new Config();
             InitializeComponent();
             System.Windows.Forms.TabControl tab = new System.Windows.Forms.TabControl();
             Task task = QueuedTask.Run(() =>
@@ -49,7 +51,7 @@ namespace WypisWyrys
 
         public void getScale()
         {
-            string value = LayersSettingsForm.getConfig("scale", null);
+            string value = config.getConfig("scale", null);
             foreach (ComboBoxItem item in scale.Items)
             {
                 if (item.Content.Equals(value)){
@@ -124,7 +126,7 @@ namespace WypisWyrys
             }
             catch (System.IO.FileNotFoundException)
             {
-                LayersSettingsForm.saveEmptyConfigFile();
+                config.saveEmptyConfigFile();
             }
             catch (Exception) { }
         }

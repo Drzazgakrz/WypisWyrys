@@ -24,8 +24,10 @@ namespace WypisWyrys
     /// </summary>
     public partial class BeginDocumentGenerationView : UserControl
     {
+        private Config config;
         public BeginDocumentGenerationView()
-        {            
+        {
+            config = new Config();
             InitializeComponent();
         }
 
@@ -44,7 +46,7 @@ namespace WypisWyrys
         public bool clearSelection()
         {
             var layers = MapView.Active.Map.Layers;
-            var parcelLayerName = LayersSettingsForm.getConfig("Działki", "parcelsLayer");
+            var parcelLayerName = config.getConfig("Działki", "parcelsLayer");
             if(parcelLayerName == null)
             {
                 MessageBox.Show("Brak wybranej konfiguracji");

@@ -21,7 +21,7 @@ namespace WypisWyrys
 {
     internal class MPZPListViewModel : DockPane
     {
-        private const string _dockPaneID = "WypisWyrys_Step2";
+        public static string _dockPaneID = "WypisWyrys_Step2";
 
         protected MPZPListViewModel() { }
 

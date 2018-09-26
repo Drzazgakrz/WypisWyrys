@@ -21,6 +21,7 @@ namespace WypisWyrys
 {
     public partial class ResolutionsSettingsView : UserControl
     {
+        private Config config = new Config();
         public ResolutionsSettingsView()
         {
             InitializeComponent();
@@ -29,7 +30,7 @@ namespace WypisWyrys
         RowCursor precints;
         public BasicFeatureLayer getPrecintLayer()
         {
-            string layerName = LayersSettingsForm.getConfig("Wydzielenia", "precintLayer");
+            string layerName = config.getConfig("Wydzielenia", "precintLayer");
             return (BasicFeatureLayer)MapView.Active.Map.GetLayersAsFlattenedList().Where((layer) =>
             {
                 return layer.Name.Equals(layerName);
@@ -37,21 +38,24 @@ namespace WypisWyrys
         }
         public void fillList(QueryFilter filter)
         {
-            symbols = new List<string>();
-            string parent = "Wydzielenia";
-            var precintLayer = getPrecintLayer();
-            Task t = QueuedTask.Run(() =>
+            if (resolutionNames.SelectedItem != null)
             {
-                precints = precintLayer.GetTable().Search(filter);
-                string symbolName = LayersSettingsForm.getConfig(parent, "precintSymbol");
-                while (precints.MoveNext())
+                symbols = new List<string>();
+                string parent = "Wydzielenia";
+                var precintLayer = getPrecintLayer();
+                Task t = QueuedTask.Run(() =>
                 {
-                    var fields = precints.Current;                    
-                    symbols.Add((string)fields.GetOriginalValue(fields.FindField(symbolName)));
-                }
-            });
-            t.Wait();
-            createRow();
+                    precints = precintLayer.GetTable().Search(filter);
+                    string symbolName = config.getConfig(parent, "precintSymbol");
+                    while (precints.MoveNext())
+                    {
+                        var fields = precints.Current;
+                        symbols.Add((string)fields.GetOriginalValue(fields.FindField(symbolName)));
+                    }
+                });
+                t.Wait();
+                createRow();
+            }
         }
 
         List<string> resolutionsNames = new List<string>();
@@ -62,7 +66,7 @@ namespace WypisWyrys
             Task t = QueuedTask.Run(() =>
             {
                 precints = precintLayer.GetTable().Search();
-                string symbolName = LayersSettingsForm.getConfig("Wydzielenia", "precintResolution");
+                string symbolName = config.getConfig("Wydzielenia", "precintResolution");
                 while (precints.MoveNext())
                 {
                     var fields = precints.Current;
@@ -104,25 +108,21 @@ namespace WypisWyrys
         public void filterResultsAndDisplay()
         {
             var resolution = this.resolutionNames.SelectedItem;
+            if (resolution == null)
+                return;
             symbol = @"'%"+this.symbolName.Text.ToUpper()+@"%'";
-            string symbolName = LayersSettingsForm.getConfig("Wydzielenia", "precintSymbol");
-            string precintResolution = LayersSettingsForm.getConfig("Wydzielenia", "precintResolution");
+            string symbolName = config.getConfig("Wydzielenia", "precintSymbol");
+            string precintResolution = config.getConfig("Wydzielenia", "precintResolution");
             if(symbolName == null|| precintResolution == null)
             {
                 MessageBox.Show("Stwórz konfigurację dla wydzieleń");
                 return;
             }
             QueryFilter filter = new QueryFilter();
-            if(resolution == null || resolution.ToString()== null)
+            filter.WhereClause = precintResolution + "= '" + resolution.ToString()+"'";
+            if (symbolName != null && symbol != @"'%%'")
             {
-                filter.WhereClause = symbolName + " LIKE " + symbol;
-            }
-            else if (symbolName == null)
-            {
-                filter.WhereClause = precintResolution + "= '" + resolution.ToString()+"'";
-            }else
-            {
-                filter.WhereClause = precintResolution + "= '" + resolution +"'"+ " AND " + symbolName + " LIKE " + symbol;
+                filter.WhereClause += " AND " + symbolName + " LIKE " + symbol;                
             }
             fillList(filter);
         }
@@ -133,8 +133,8 @@ namespace WypisWyrys
             var parent = (WrapPanel)source.Parent;
             var fields = parent.Children.GetEnumerator();
             fields.MoveNext();
-            string resolutionName = ((TextBox)fields.Current).Text;
-            ResolutionDetailsSetWindow editWindow = new ResolutionDetailsSetWindow(resolutionName);
+            var resolution = this.resolutionNames.SelectedItem;
+            ResolutionDetailsSetWindow editWindow = new ResolutionDetailsSetWindow(resolution.ToString(), symbol);
             editWindow.Show();
         }
 

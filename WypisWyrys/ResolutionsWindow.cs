@@ -20,9 +20,11 @@ namespace WypisWyrys
 {
     public partial class ResolutionsWindow : Form
     {
+        private Config config;
         public List<ResolutionModel> models { get; set; }
         public ResolutionsWindow(List<ResolutionModel> models)
         {
+            this.config = new Config();
             this.models = models;
             InitializeComponent();
             CreateForm();
@@ -43,7 +45,7 @@ namespace WypisWyrys
                 var button = new ButtonCell(this);
                 button.Value = "Usuń";
                 ResolutionModel model = models.ElementAt(i);
-                string name = LayersSettingsForm.getConfig("Wydzielenia", "precintSymbol");
+                string name = config.getConfig("Wydzielenia", "precintSymbol");
                 object result = null;
                 model.resolution.TryGetValue(name, out result);
                 row.Cells[0].Value = result.ToString();
