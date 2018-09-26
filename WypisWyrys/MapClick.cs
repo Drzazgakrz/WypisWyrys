@@ -115,7 +115,6 @@ namespace WypisWyrys
                     if (parcellayer != null)
                     {
                         parcellayer.Select(this.parcelQuery, SelectionCombinationMethod.New);
-
                     }
                     return true;
                 });

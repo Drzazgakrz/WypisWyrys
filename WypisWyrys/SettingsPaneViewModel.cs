@@ -30,10 +30,10 @@ namespace WypisWyrys
         /// </summary>
         internal static void Show()
         {
-            DockPane pane = FrameworkApplication.DockPaneManager.Find(_dockPaneID);
+            SettingsPaneViewModel pane = (SettingsPaneViewModel)FrameworkApplication.DockPaneManager.Find(_dockPaneID);
             if (pane == null)
                 return;
-
+            ((SettingsPaneView)pane.Content).getScale();
             pane.Activate();
         }
 

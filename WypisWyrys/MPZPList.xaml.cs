@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ArcGIS.Core.Geometry;
+using ArcGIS.Desktop.Framework.Threading.Tasks;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,9 +28,11 @@ namespace WypisWyrys
         public List<MPZPModel> models;
         public static MPZPModel model { get; set; }
         public static List<ParcelModel> parcels { get; set; } = new List<ParcelModel>();
+        public static List<ParcelModel> parcelsInMPZP { get; set; } = new List<ParcelModel>();
 
         public void fillTextViews(List<MPZPModel> model)
         {
+            parcels = MapClick.parcel;
             try
             {
                 this.models = model;
@@ -95,18 +99,43 @@ namespace WypisWyrys
                 mpzp.mpzp.TryGetValue(LayersSettingsForm.getConfig("MPZP", "MPZPId"), out result);
                 return (text.Equals(result.ToString()));
             }).First();
+            getIntersectedData();
             nextPane();
+            
+        }
+
+        public void clearList()
+        {
+            this.primaryNavigator.Items.Clear();
         }
 
         public void nextPane()
         {
             ResolutionListViewModel.Show();
+            clearList();
             MPZPListViewModel.desactivatePane();
         }
         public void goBack(object sender, RoutedEventArgs e)
         {
             ParcelListViewModel.Show();
             MPZPListViewModel.desactivatePane();
+        }
+        public void getIntersectedData()
+        {
+            parcelsInMPZP = new List<ParcelModel>();
+            object result = null;
+            model.mpzp.TryGetValue("Shape", out result);
+            Task t = QueuedTask.Run(() =>
+            {
+                parcelsInMPZP = parcels.Where((parcel) =>
+                {
+                    object parcelsShape = null;
+                    parcel.parcel.TryGetValue("Shape", out parcelsShape);
+                    return (!GeometryEngine.Instance.Intersection((ArcGIS.Core.Geometry.Polygon)result,
+                        (ArcGIS.Core.Geometry.Polygon)parcelsShape, GeometryDimension.esriGeometry2Dimension).IsEmpty);
+                }).ToList();
+            });            
+            t.Wait();
         }
     }
 }

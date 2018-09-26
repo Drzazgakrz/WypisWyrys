@@ -35,7 +35,7 @@ namespace WypisWyrys
             ParcelListViewModel pane = (ParcelListViewModel)FrameworkApplication.DockPaneManager.Find(ParcelListViewModel._dockPaneID);
             modelsAccepted = pane.resolution;
 
-            fillTextBox(pane.parcels);
+            fillTextBox(MPZPListView.parcelsInMPZP);
         }
         public void getOwnerInfo(object sender, RoutedEventArgs e)
         {

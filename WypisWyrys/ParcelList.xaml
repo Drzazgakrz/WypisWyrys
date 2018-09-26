@@ -27,11 +27,10 @@
             <ListBox x:Name="primaryNavigator"
                ItemsSource="{Binding PrimaryMenuList}" Height="300"/>
         </DockPanel>
-        <DockPanel>
-            <Label>Zaznacz obszar na mapie lub wpisz identyfikator poniżej:</Label>
-            <TextBox Name="identifier"></TextBox>
-            <Button Click="findParcel">Dodaj działkę</Button>
+        <DockPanel Margin="150,250,0,0"  Grid.Row="1">
+            <Button Content="Usuń wszystkie" Click="clearAll"></Button>
+            <Button Content="Dalej" Width="100px" Height="20px" Grid.Row="1" Click="checkParcelProperties" />
         </DockPanel>
-        <Button Content="Dalej" Width="100px" Height="20px" Margin="200,250,0,0" Grid.Row="1" Click="checkParcelProperties" />
+        
     </Grid>
 </UserControl>

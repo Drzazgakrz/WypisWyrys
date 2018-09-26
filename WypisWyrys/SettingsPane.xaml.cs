@@ -45,8 +45,20 @@ namespace WypisWyrys
                 }
             });
             task.Wait();
-            //dockPanel1.Add
         }
+
+        public void getScale()
+        {
+            string value = LayersSettingsForm.getConfig("scale", null);
+            foreach (ComboBoxItem item in scale.Items)
+            {
+                if (item.Content.Equals(value)){
+                    this.scale.SelectedItem = item;
+                    break;
+                }
+            }            
+        }
+
         public void setLayersSettings(object sender, RoutedEventArgs e)
         {
             LayersSettingsForm form = new LayersSettingsForm();
@@ -95,11 +107,11 @@ namespace WypisWyrys
             ResolutionsSettingsViewModel.Show();
         }
 
-        public void saveScale(object sender, RoutedEventArgs args)
+        public void saveScale(object sender, SelectionChangedEventArgs args)
         {
             try
             {
-                int scaleValue = Convert.ToInt32(scale.Text);
+                string scaleValue = ((ComboBoxItem)scale.SelectedItem).Content.ToString();
                 string node = "scale";
                 XDocument document = XDocument.Load("config.xml");
                 if (document.Root.Element(node) == null)
@@ -114,6 +126,7 @@ namespace WypisWyrys
             {
                 LayersSettingsForm.saveEmptyConfigFile();
             }
+            catch (Exception) { }
         }
       
     }

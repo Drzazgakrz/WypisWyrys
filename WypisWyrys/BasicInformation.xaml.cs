@@ -91,7 +91,7 @@ namespace WypisWyrys
             OwnerInfoViewModel pane = ((OwnerInfoViewModel)FrameworkApplication.DockPaneManager.Find(OwnerInfoViewModel._dockPaneID));
             user = pane.getUserModel();
             precints = dockpane.precints;
-            parcels = dockpane.parcels;
+            parcels = MPZPListView.parcelsInMPZP;
             mpzp = MPZPListView.model;
             resolutions = ((ResolutionListViewModel)FrameworkApplication.DockPaneManager.Find(ResolutionListViewModel._dockPaneID)).getAcceptedModels();
             return collectData();
@@ -248,7 +248,7 @@ namespace WypisWyrys
                 png.OutputFileName = System.IO.Path.GetTempPath() + "\\map.png";
                 MapView.Active.Export(png);
             });
-            task.Wait(TimeSpan.FromSeconds(20));
+            task.Wait();
             System.Drawing.Image img = System.Drawing.Image.FromFile(System.IO.Path.GetTempPath() + "\\map.png");
             MemoryStream stream = new MemoryStream();
             img.Save(stream, img.RawFormat);
@@ -332,7 +332,6 @@ namespace WypisWyrys
     @"\picwgoal" + (((System.Drawing.Size)legendSize).Width * 10) + @"\pichgoal" + (((System.Drawing.Size)legendSize).Height * 10) +
     str + "}";
             while(file.IndexOf("[[legenda_rastrowa]]")!= file.LastIndexOf("[[legenda_rastrowa]]")){
-               // ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("of[awkj[pk");
                 file = file.Remove(file.LastIndexOf("[[legenda_rastrowa]]"), 20);
             }
             file = file.Replace("[[legenda_rastrowa]]", rtfImageStr);
@@ -450,7 +449,7 @@ namespace WypisWyrys
                     string editedFile = editDocument(buffer);
                     string footer = File.ReadAllText("documentFooter.rtf");
                     footer = this.createFooter(footer);
-                    editedFile = appendFooter(footer+"\\par}{", editedFile);
+                    editedFile = appendFooter(footer+"\\par{", editedFile);
 
                     if (editedFile != null && editedFile.Length > 0)
                     {
@@ -468,10 +467,10 @@ namespace WypisWyrys
             {
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Zbyt długa ścieżka. Popraw ją i spróbuj ponownie.");
             }
-            catch (Exception)
+            /*catch (Exception)
             {
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Wystąpił niezidentyfikowany błąd. Sprawdź czy masz odpowiednią ilość miejsca na dysku i czy oznaczenia zgadzają się z tymi w dokumentacji.");
-            }
+            }*/
         }
         private string createFooter(string file)
         {
@@ -482,7 +481,6 @@ namespace WypisWyrys
         {            
             int documentEndIndex = document.IndexOf("{\\rtf1")+6;
             return document.Substring(0, documentEndIndex)+ "{\\footer\\pard " +footer + document.Substring(documentEndIndex, document.Length - documentEndIndex);
-            // document.Substring(documentEndIndex)
         }
         private void goBack(object sender, RoutedEventArgs e)
         {

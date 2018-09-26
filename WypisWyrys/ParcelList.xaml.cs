@@ -40,40 +40,30 @@ namespace WypisWyrys
             }
         }
 
-        private void findParcel(object sender, RoutedEventArgs e)
+        private void clearAll(object sender, RoutedEventArgs e)
         {
-            string parcelIdentifier = this.identifier.Text;
-            string id = LayersSettingsForm.getConfig("Działki", "parcelsId");
-            string parcelLayerName = LayersSettingsForm.getConfig("Działki", "parcelsLayer");
-            if (id == null)
+            parcels = new List<ParcelModel>();
+            primaryNavigator.Items.Clear();
+            string layerName = LayersSettingsForm.getConfig("Działki", "parcelsLayer");
+            if(layerName == null)
             {
-                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Brak danych konfiguracyjnych. Podaj nowe");
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Brak konfiguracji dla warstw. Stwórz nową");
+                return;
+            }
+            var layers = MapView.Active.Map.Layers;
+            FeatureLayer parcelsLayer = (FeatureLayer)layers.Where((layer) =>
+            {
+                return layerName.Equals(layer.Name);
+            }).First();
+            if(parcelsLayer == null)
+            {
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Brak konfiguracji dla warstw. Stwórz nową");
                 return;
             }
             Task t = QueuedTask.Run(() =>
             {
-                var layers = MapView.Active.GetSelectedLayers();
-                object result = null;
-                Layer parcelLayer = layers.Where((layer) =>
-                {
-                    return layer.Name.Equals(parcelLayerName);
-                }).First();
-
-                ArcGIS.Core.Data.Table table = ((FeatureLayer)parcelLayer).GetTable();
-                QueryFilter filter = new QueryFilter();
-                filter.WhereClause = id + "=" + parcelIdentifier;
-                var cursor = table.Search(filter);
-                cursor.MoveNext();
-                var parcel = cursor.Current;
-                Dictionary<string, object> parcelModel = new Dictionary<string, object>();
-                int i = 0;
-                foreach(Field field in parcel.GetFields())
-                {
-                    parcelModel.Add(field.Name, parcel.GetOriginalValue(i));
-                    i++;
-                }
+                parcelsLayer.ClearSelection();
             });
-            
         }
 
         string parcelIdField;

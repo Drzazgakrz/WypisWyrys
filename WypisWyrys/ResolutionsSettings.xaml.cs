@@ -100,11 +100,11 @@ namespace WypisWyrys
                 primaryNavigator.Items.Add(panel);
             }
         }
-
+        string symbol;
         public void filterResultsAndDisplay()
         {
             var resolution = this.resolutionNames.SelectedItem;
-            string symbol = @"'%"+this.symbolName.Text.ToUpper()+@"%'";
+            symbol = @"'%"+this.symbolName.Text.ToUpper()+@"%'";
             string symbolName = LayersSettingsForm.getConfig("Wydzielenia", "precintSymbol");
             string precintResolution = LayersSettingsForm.getConfig("Wydzielenia", "precintResolution");
             if(symbolName == null|| precintResolution == null)

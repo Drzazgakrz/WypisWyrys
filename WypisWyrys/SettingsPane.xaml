@@ -30,12 +30,13 @@
             <Button Click="setLayersSettings" Content="Zmień konfigurację warstw" />
         </DockPanel>
         <DockPanel LastChildFill="true" KeyboardNavigation.TabNavigation="Local"  Height="30" Margin="0,132,0,-65">
-            <Label>Skala wydruku 1:</Label><TextBox Name="scale"></TextBox>
-        </DockPanel>
-        <DockPanel Height="30" Margin="0,168,0,-99">
-            <Button Click="saveScale">
-                Zapisz skalę
-            </Button>
+            <Label>Skala wydruku 1:</Label>
+            <ComboBox Name="scale" SelectionChanged="saveScale">
+                <ComboBoxItem Content="500"/>
+                <ComboBoxItem Content="1000"/>
+                <ComboBoxItem Content="2000"/>
+                <ComboBoxItem Content="5000"/>
+            </ComboBox>
         </DockPanel>
 
         <DockPanel Height="30" Margin="0,198,0,-128">
