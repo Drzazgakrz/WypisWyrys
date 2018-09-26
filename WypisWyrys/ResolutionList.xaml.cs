@@ -23,8 +23,7 @@ namespace WypisWyrys
 {
     public partial class ResolutionListView : System.Windows.Controls.UserControl
     {
-        public List<ResolutionModel> modelsAccepted { get; set; }
-        public List<ParcelModel> parcels { get; set; }
+        public NecessaryProperties propertiesAccepted { get; set; }
         private Config config;
         public ResolutionListView()
         {
@@ -32,12 +31,10 @@ namespace WypisWyrys
             InitializeComponent();
            
         }
-        public void getModels()
+        public void getModels(NecessaryProperties acceptedProperties)
         {
-            ParcelListViewModel pane = (ParcelListViewModel)FrameworkApplication.DockPaneManager.Find(ParcelListViewModel._dockPaneID);
-            modelsAccepted = pane.resolution;
-
-            fillTextBox(MPZPListView.parcelsInMPZP);
+            this.propertiesAccepted = acceptedProperties;
+            fillTextBox();
         }
         public void getOwnerInfo(object sender, RoutedEventArgs e)
         {
@@ -64,10 +61,10 @@ namespace WypisWyrys
         {
             Task t = QueuedTask.Run(() =>
             {
-                var models = modelsAccepted.Where((resolution) =>
+                var models = propertiesAccepted.resolutions.Where((resolution) =>
                 {
                     object resolutionShape;
-                    resolution.resolution.TryGetValue("Shape", out resolutionShape);
+                    propertiesAccepted.resolutions.First().resolution.TryGetValue("Shape", out resolutionShape);
                     object parcelShape;
                     currentParcel.parcel.TryGetValue("Shape", out parcelShape);
                     ArcGIS.Core.Geometry.Polygon resolutionPolygon = (ArcGIS.Core.Geometry.Polygon)resolutionShape;
@@ -78,16 +75,15 @@ namespace WypisWyrys
                 currentParcel.resolutions = models;
             });
         }
-        public void fillTextBox(List<ParcelModel> parcels)
+        public void fillTextBox()
         {
             panel = new TableLayoutPanel();
             panel.ColumnCount = 2;
-            panel.RowCount = parcels.Count;
-            this.parcels = parcels;
-            for (int i = 0; i < parcels.Count; i++)
+            panel.RowCount = propertiesAccepted.parcels.Count;
+            for (int i = 0; i < propertiesAccepted.parcels.Count; i++)
             {
-                createRow(parcels.ElementAt(i), i);
-                addResolutionsToParcel(parcels.ElementAt(i));
+                createRow(propertiesAccepted.parcels.ElementAt(i), i);
+                addResolutionsToParcel(propertiesAccepted.parcels.ElementAt(i));
             }
         }
         string parcelIdField;
@@ -121,15 +117,15 @@ namespace WypisWyrys
             var children = parent.Children.GetEnumerator();
             children.MoveNext();
             string parcelId = ((System.Windows.Controls.TextBox)children.Current).Text;
-            ParcelModel parcelClicked = this.parcels.Where((parcel) =>
+            ParcelModel parcelClicked = propertiesAccepted.parcels.Where((parcel) =>
             {
                 object result = null;
                 parcel.parcel.TryGetValue(parcelIdField, out result);
                 return parcelId.Equals(result.ToString());
             }).First();
-            parcels.Remove(parcelClicked);
+            propertiesAccepted.parcels.Remove(parcelClicked);
             primaryNavigator.Items.Clear();
-            this.fillTextBox(this.parcels);
+            this.fillTextBox();
         }
 
         public void getParcelsResolution(object sender, EventArgs e)
@@ -139,7 +135,7 @@ namespace WypisWyrys
             var children = parent.Children.GetEnumerator();
             children.MoveNext();
             string parcelId = ((System.Windows.Controls.TextBox)children.Current).Text;
-            ParcelModel parcel = parcels.Where((singleParcel) =>
+            ParcelModel parcel = propertiesAccepted.parcels.Where((singleParcel) =>
             {
                 object id = null;
                 string identifier = config.getConfig("Działki", "parcelsId");

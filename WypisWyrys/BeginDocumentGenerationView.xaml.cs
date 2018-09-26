@@ -24,10 +24,10 @@ namespace WypisWyrys
     /// </summary>
     public partial class BeginDocumentGenerationView : UserControl
     {
-        private Config config;
+        private MapInteraction interaction;
         public BeginDocumentGenerationView()
         {
-            config = new Config();
+            interaction = new MapInteraction();            
             InitializeComponent();
         }
 
@@ -36,36 +36,13 @@ namespace WypisWyrys
             MapClick.isDockpaneActive = true;
             ParcelListViewModel pane = (ParcelListViewModel)FrameworkApplication.DockPaneManager.Find(ParcelListViewModel._dockPaneID);
             pane.resetPane();
-            if (!this.clearSelection())
+            if (!interaction.clearSelection())
             {
                 return;
             }
             ParcelListViewModel.Show();
             BeginDocumentGenerationViewModel.desactivatePane();
         }
-        public bool clearSelection()
-        {
-            var layers = MapView.Active.Map.Layers;
-            var parcelLayerName = config.getConfig("Działki", "parcelsLayer");
-            if(parcelLayerName == null)
-            {
-                MessageBox.Show("Brak wybranej konfiguracji");
-                return false;
-            }
-            FeatureLayer layer = (FeatureLayer)layers.Where((currentLayer) =>
-            {
-                return currentLayer.Name.Equals(parcelLayerName);
-            }).First();
-            if(layer== null)
-            {
-                MessageBox.Show("Brak podanej warstwy");
-                return false;
-            }
-            Task t = QueuedTask.Run(() =>
-            {
-                layer.ClearSelection();
-            });
-            return true;
-        }
+        
     }    
 }

@@ -38,17 +38,11 @@ namespace WypisWyrys
         public static bool isDockpaneActive { get; set; } = false;
         private FeatureLayer parcellayer;
         private QueryFilter parcelQuery;
-        public static List<ParcelModel> parcel { get; set; } = new List<ParcelModel>();
-        public static List<MPZPModel> mpzpModel { get; set; } = new List<MPZPModel>();
-        public static List<ResolutionModel> resolutionModel = new List<ResolutionModel>();
-        public static List<PrecintModel> precints = new List<PrecintModel>();
+        public NecessaryProperties properties;
         List<long> lista;
         private async void getData(Geometry geometry, GeometryDimension dimension)
         {
-            parcel = new List<ParcelModel>();
-            mpzpModel = new List<MPZPModel>();
-            precints = new List<PrecintModel>();
-            resolutionModel = new List<ResolutionModel>();
+            properties = new NecessaryProperties();
             ArcGIS.Desktop.Mapping.MapView view = ArcGIS.Desktop.Mapping.MapView.Active;
 
                 var layersTOC = ArcGIS.Desktop.Mapping.MapView.Active.Map.GetLayersAsFlattenedList();
@@ -68,7 +62,7 @@ namespace WypisWyrys
             this.getParcel(parcelsLayer, geometry, dimension);
             CIMLineSymbol symbol = new CIMLineSymbol();
             symbol.SetColor(ColorFactory.Instance.CreateRGBColor(255, 255, 255, 0));
-            foreach (ParcelModel parcelModel in parcel)
+            foreach (ParcelModel parcelModel in properties.parcels)
             {
                 object result = null;
                 var pointsFromShape = parcelModel.parcel.TryGetValue("Shape", out result);
@@ -110,7 +104,7 @@ namespace WypisWyrys
                     getData(MultipointBuilder.CreateMultipoint(points), GeometryDimension.esriGeometry0Dimension);
                 });
                 t.Wait();
-                ((ParcelListViewModel)FrameworkApplication.DockPaneManager.Find(ParcelListViewModel._dockPaneID)).getView();
+                ((ParcelListViewModel)FrameworkApplication.DockPaneManager.Find(ParcelListViewModel._dockPaneID)).getView(properties);
                 return QueuedTask.Run(() =>
                 {
                     if (parcellayer != null)
@@ -154,7 +148,7 @@ namespace WypisWyrys
                     parcelDictionary.Add(field.Name, row.GetOriginalValue(iterator));
                     iterator++;
                 }
-                parcel.Add(new ParcelModel(parcelDictionary));
+                properties.parcels.Add(new ParcelModel(parcelDictionary));
             }
             selectFilter.WhereClause = statement ;
             this.parcelQuery = selectFilter;
@@ -162,7 +156,7 @@ namespace WypisWyrys
         private List<long> getIdsFromEveryParcel(FeatureLayer layer)
         {
             List<long> allIds = new List<long>();
-            foreach(ParcelModel current in parcel)
+            foreach(ParcelModel current in properties.parcels)
             {
                 object result;
                 current.parcel.TryGetValue("Shape", out result);
@@ -212,7 +206,7 @@ namespace WypisWyrys
                         mpzpDictionary.Add(field.Name, mpzpRow.GetOriginalValue(iterator));
                         iterator++;
                     }
-                    mpzpModel.Add(new MPZPModel(mpzpDictionary));
+                    properties.mpzpModels.Add(new MPZPModel(mpzpDictionary));
                 }
             }
             catch (Exception e)
@@ -240,7 +234,7 @@ namespace WypisWyrys
                         resolutionDictionary.Add(field.Name, resolutionRow.GetOriginalValue(iterator));
                         iterator++;
                     }
-                    resolutionModel.Add(new ResolutionModel(resolutionDictionary));
+                    properties.resolutions.Add(new ResolutionModel(resolutionDictionary));
                 }
             }
         }
@@ -266,7 +260,7 @@ namespace WypisWyrys
                         precintDictionary.Add(field.Name, precintRow.GetOriginalValue(iterator));
                         iterator++;
                     }
-                    precints.Add(new PrecintModel(precintDictionary));
+                    properties.precints.Add(new PrecintModel(precintDictionary));
                 }
             }
             

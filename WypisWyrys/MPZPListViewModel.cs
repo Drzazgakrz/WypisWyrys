@@ -25,13 +25,17 @@ namespace WypisWyrys
 
         protected MPZPListViewModel() { }
 
+        public NecessaryProperties getAcceptedProperties()
+        {
+            return ((MPZPListView)this.Content).acceptedProperties;
+        }
+
         public static void Show()
         {
             MPZPListViewModel pane = (MPZPListViewModel)FrameworkApplication.DockPaneManager.Find(_dockPaneID);
             if (pane == null)
                 return;
-
-            // parcel = pane2.getParcel();    
+            ((MPZPListView)pane.Content).clearList();
             pane.fillTextBoxes();
             pane.Activate();
         }
@@ -41,7 +45,7 @@ namespace WypisWyrys
         {
             ParcelListViewModel pane2 = (ParcelListViewModel)FrameworkApplication.DockPaneManager.
                 Find(ParcelListViewModel._dockPaneID);
-            ((MPZPListView)this.Content).fillTextViews(pane2.model);
+            ((MPZPListView)this.Content).fillTextViews(pane2.properties);
         }
         public static void desactivatePane()
         {

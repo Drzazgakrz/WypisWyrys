@@ -25,13 +25,13 @@ namespace WypisWyrys
 
         protected ResolutionListViewModel() { }
 
-        public static void Show()
+        public static void Show(NecessaryProperties properties)
         {
             ResolutionListViewModel pane = (ResolutionListViewModel)FrameworkApplication.DockPaneManager.Find(_dockPaneID);
             if (pane == null)
                 return;
             ((ResolutionListView)pane.Content).emptyListView();
-            ((ResolutionListView)((ResolutionListViewModel)pane).Content).getModels();            
+            ((ResolutionListView)pane.Content).getModels(properties);            
             pane.Activate();
         }
         public static void desactivatePane()
@@ -39,19 +39,9 @@ namespace WypisWyrys
             DockPane pane = FrameworkApplication.DockPaneManager.Find(_dockPaneID);
             pane.Hide();
         }
-        public List<ResolutionModel> getAcceptedModels()
+        public NecessaryProperties getAcceptedModels()
         {
-             return ((ResolutionListView)this.Content).modelsAccepted;
-        }
-    }
-
-    
-
-    internal class Dockpane3_ShowButton : Button
-    {
-        protected override void OnClick()
-        {
-            ResolutionListViewModel.Show();
+             return ((ResolutionListView)this.Content).propertiesAccepted;
         }
     }
 }

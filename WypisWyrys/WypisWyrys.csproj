@@ -114,6 +114,8 @@
     </Compile>
     <Compile Include="BeginDocumentGenerationViewModel.cs" />
     <Compile Include="Config.cs" />
+    <Compile Include="MapInteraction.cs" />
+    <Compile Include="Models\NecessaryProperties.cs" />
     <Compile Include="ParcelList.xaml.cs">
       <DependentUpon>ParcelList.xaml</DependentUpon>
     </Compile>

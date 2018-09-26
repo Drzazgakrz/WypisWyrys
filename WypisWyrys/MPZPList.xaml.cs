@@ -24,24 +24,20 @@ namespace WypisWyrys
         private Config config;
         public MPZPListView()
         {
+            this.acceptedProperties = new NecessaryProperties();
             config = new Config();
             InitializeComponent();
         }
 
-        public List<MPZPModel> models;
-        public static MPZPModel model { get; set; }
-        public static List<ParcelModel> parcels { get; set; } = new List<ParcelModel>();
-        public static List<ParcelModel> parcelsInMPZP { get; set; } = new List<ParcelModel>();
-
-        public void fillTextViews(List<MPZPModel> model)
+        private NecessaryProperties properties;
+        public NecessaryProperties acceptedProperties { get; set; }
+        public void fillTextViews(NecessaryProperties properties)
         {
-            parcels = MapClick.parcel;
+            this.properties = properties;
             try
             {
-                if(models == null || models.Count == 0)
-                    this.models = model;
                 var i = 0;
-                foreach(MPZPModel currentModel in model)
+                foreach(MPZPModel currentModel in this.properties.mpzpModels)
                 {
                     createRow(currentModel, i);
                     i++;
@@ -97,15 +93,16 @@ namespace WypisWyrys
                     break;
                 }
             }
-            model = models.Where((mpzp) =>
+            this.acceptedProperties.mpzpModels = this.properties.mpzpModels.Where((mpzp) =>
             {
                 object result = null;
                 mpzp.mpzp.TryGetValue(config.getConfig("MPZP", "MPZPId"), out result);
                 return (text.Equals(result.ToString()));
-            }).First();
+            }).ToList();
             getIntersectedData();
-            nextPane();
-            
+            acceptedProperties.resolutions = properties.resolutions;
+            acceptedProperties.precints = properties.precints;
+            nextPane();           
         }
 
         public void clearList()
@@ -115,7 +112,7 @@ namespace WypisWyrys
 
         public void nextPane()
         {
-            ResolutionListViewModel.Show();
+            ResolutionListViewModel.Show(this.acceptedProperties);
             MPZPListViewModel.desactivatePane();
         }
         public void goBack(object sender, RoutedEventArgs e)
@@ -126,21 +123,23 @@ namespace WypisWyrys
         }
         public void getIntersectedData()
         {
-            parcelsInMPZP = new List<ParcelModel>();
-            object result = null;
-            model.mpzp.TryGetValue("Shape", out result);
-            Task t = QueuedTask.Run(() =>
+            foreach (MPZPModel model in acceptedProperties.mpzpModels)
             {
-                MapView.Active.ZoomTo((ArcGIS.Core.Geometry.Polygon)result);
-                parcelsInMPZP = parcels.Where((parcel) =>
+                object result = null;
+                model.mpzp.TryGetValue("Shape", out result);
+                Task t = QueuedTask.Run(() =>
                 {
-                    object parcelsShape = null;
-                    parcel.parcel.TryGetValue("Shape", out parcelsShape);
-                    return (!GeometryEngine.Instance.Intersection((ArcGIS.Core.Geometry.Polygon)result,
-                        (ArcGIS.Core.Geometry.Polygon)parcelsShape, GeometryDimension.esriGeometry2Dimension).IsEmpty);
-                }).ToList();
-            });            
-            t.Wait();
+                    MapView.Active.ZoomTo((ArcGIS.Core.Geometry.Polygon)result);
+                    this.acceptedProperties.parcels = this.properties.parcels.Where((parcel) =>
+                    {
+                        object parcelsShape = null;
+                        parcel.parcel.TryGetValue("Shape", out parcelsShape);
+                        return (!GeometryEngine.Instance.Intersection((ArcGIS.Core.Geometry.Polygon)result,
+                            (ArcGIS.Core.Geometry.Polygon)parcelsShape, GeometryDimension.esriGeometry2Dimension).IsEmpty);
+                    }).ToList();
+                });
+                t.Wait();
+            }
         }
     }
 }

@@ -43,10 +43,7 @@ namespace WypisWyrys
         }
         private Config config;
         public BaseInfoModel basicInfos { get; set; }
-        public List<ParcelModel> parcels { get; set; }
-        public List<PrecintModel> precints { get; set; }
-        public MPZPModel mpzp { get; set; } 
-        public List<ResolutionModel> resolutions { get; set; }
+        public NecessaryProperties acceptedProperties;
         public UserModel user { get; set; } = new UserModel();
         public void generateCertificate(object sender, RoutedEventArgs e)
         {
@@ -87,16 +84,10 @@ namespace WypisWyrys
         }
         public bool getLists()
         {
-            parcels = new List<ParcelModel>();
-            precints = new List<PrecintModel>();
-
-            ParcelListViewModel dockpane = (ParcelListViewModel)FrameworkApplication.DockPaneManager.Find(ParcelListViewModel._dockPaneID);
+            ResolutionListViewModel dockpane = (ResolutionListViewModel)FrameworkApplication.DockPaneManager.Find(ResolutionListViewModel._dockPaneID);
             OwnerInfoViewModel pane = ((OwnerInfoViewModel)FrameworkApplication.DockPaneManager.Find(OwnerInfoViewModel._dockPaneID));
             user = pane.getUserModel();
-            precints = dockpane.precints;
-            parcels = MPZPListView.parcelsInMPZP;
-            mpzp = MPZPListView.model;
-            resolutions = ((ResolutionListViewModel)FrameworkApplication.DockPaneManager.Find(ResolutionListViewModel._dockPaneID)).getAcceptedModels();
+            this.acceptedProperties = dockpane.getAcceptedModels();
             return collectData();
         }
         public string editFile(string file)
@@ -111,8 +102,8 @@ namespace WypisWyrys
         private string editHeader(string file)
         {
             object result = null;
-            string resolutionNumberField = config.getConfig("Wydzielenia","precintResolution");
-            this.resolutions.First().resolution.TryGetValue(resolutionNumberField, out result);
+            string resolutionNumberField = config.getConfig("MPZP","MPZPResolution");
+            this.acceptedProperties.mpzpModels.First().mpzp.TryGetValue(resolutionNumberField, out result);
             file = file.Replace("[[data_podania]]", StringUtil.ToRtfString(this.basicInfos.receiveDate.ToShortDateString()));
             file = file.Replace("[[nr_uchwaly]]", StringUtil.ToRtfString(result.ToString()));
             file = file.Replace("[[symbol]]", StringUtil.ToRtfString(this.basicInfos.caseSign));
@@ -121,7 +112,7 @@ namespace WypisWyrys
             file = file.Replace("[[data]]", (basicInfos.date.ToShortDateString()));
             file = file.Replace("[[gmina]]", StringUtil.ToRtfString(this.basicInfos.location));
             string mpzpNameField = config.getConfig("MPZP", "MPZPName");
-            this.mpzp.mpzp.TryGetValue(mpzpNameField, out result);
+            this.acceptedProperties.mpzpModels.First().mpzp.TryGetValue(mpzpNameField, out result);
             file = file.Replace("[[nazwa_mpzp]]", StringUtil.ToRtfString(result.ToString()));
             return file;
         }
@@ -164,13 +155,13 @@ namespace WypisWyrys
             string model = file.Substring(index1, index2 - index1);
             string parcelsString = "";
             object result = null;
-            foreach (PrecintModel precint in precints)
+            foreach (PrecintModel precint in acceptedProperties.precints)
             {
                 string name = config.getConfig("Obręby", "areaName");
                 precint.precint.TryGetValue(name, out result);
                 string precintName = result.ToString();
                 string parcelsIdField = config.getConfig("Działki", "parcelsId");
-                List<ParcelModel> parcelsInPrecint = (parcels.Where((parcel) => {
+                List<ParcelModel> parcelsInPrecint = (acceptedProperties.parcels.Where((parcel) => {
                     parcel.parcel.TryGetValue(parcelsIdField, out result);
                     return result.ToString().Contains(precintName); })).ToList();
                 string parcelsNumbers = "";
@@ -196,9 +187,9 @@ namespace WypisWyrys
              string model = file.Substring(index1, index2 - index1);
              string assumeSymbol = "";
              object result;
-             foreach (ResolutionModel resolution in resolutions)
+             foreach (ResolutionModel resolution in acceptedProperties.resolutions)
              {
-                 var parcelsInResolution = parcels.Where((parcel) =>
+                 var parcelsInResolution = acceptedProperties.parcels.Where((parcel) =>
                  {
                         return parcel.resolutions.Contains(resolution);
                  }).ToList();
@@ -287,13 +278,13 @@ namespace WypisWyrys
                     "\\b " + StringUtil.ToRtfString("Nr działki") + " \\b0\\intbl\\cell " +
                     "\\row";
             var i = 0;
-            foreach (ParcelModel parcel in parcels)
+            foreach (ParcelModel parcel in acceptedProperties.parcels)
             {
                 string rowBg = (i % 2 == 0) ? "\\clcbpat2" : "\\clcbpat3";
                 string parcelsIdField = config.getConfig("Działki", "parcelsId");
                 string areaNameField = config.getConfig("Obręby", "areaName");
                 object areaName = null;
-                var area = precints.Where((precint) =>
+                var area = acceptedProperties.precints.Where((precint) =>
                 {
                     object resultShape = null;
                     precint.precint.TryGetValue("Shape", out resultShape);
@@ -321,7 +312,7 @@ namespace WypisWyrys
             file = file.Replace("[[podsumowanie_tabela]]", podsumowanieTable);
 
             string legendFieldName = config.getConfig("MPZP", "MPZPLegend");
-
+            MPZPModel mpzp = acceptedProperties.mpzpModels.First();
             Object legend = null;
             mpzp.mpzp.TryGetValue("legend", out legend);
 
@@ -380,7 +371,7 @@ namespace WypisWyrys
             {
                 return false;
             }
-            if (mpzp == null || resolutions == null || parcels == null || resolutions.Count == 0 || parcels.Count == 0)
+            if (acceptedProperties.mpzpModels == null || acceptedProperties.resolutions == null || acceptedProperties.parcels == null || acceptedProperties.parcels.Count == 0)
             {
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Brak danych na temat działki");
                 return false;
@@ -418,7 +409,7 @@ namespace WypisWyrys
                 if ((myStream = showWindow("Zapisz wypis i wyrys", "Rich text document format (*.rtf)|*.rtf")) != null)
                 {
                     List<MapPoint> points = new List<MapPoint>();
-                    foreach (ParcelModel parcel in parcels)
+                    foreach (ParcelModel parcel in acceptedProperties.parcels)
                     {
                         object result = null;
                         parcel.parcel.TryGetValue("Shape", out result);
@@ -471,10 +462,10 @@ namespace WypisWyrys
             {
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Zbyt długa ścieżka. Popraw ją i spróbuj ponownie.");
             }
-            catch (Exception)
+            /*catch (Exception)
             {
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Wystąpił niezidentyfikowany błąd. Sprawdź czy masz odpowiednią ilość miejsca na dysku i czy oznaczenia zgadzają się z tymi w dokumentacji.");
-            }
+            }*/
         }
         private string createFooter(string file)
         {
