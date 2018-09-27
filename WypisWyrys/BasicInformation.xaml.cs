@@ -495,10 +495,10 @@ namespace WypisWyrys
             {
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Zbyt długa ścieżka. Popraw ją i spróbuj ponownie.");
             }
-            /*catch (Exception)
+            catch (Exception)
             {
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show("Wystąpił niezidentyfikowany błąd. Sprawdź czy masz odpowiednią ilość miejsca na dysku i czy oznaczenia zgadzają się z tymi w dokumentacji.");
-            }*/
+            }
         }
         private string createFooter(string file)
         {
