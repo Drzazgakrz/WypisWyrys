@@ -125,30 +125,21 @@ namespace WypisWyrys
             var selection = layer.GetTable();
             var selectFilter = new QueryFilter();
             var statement = "";
-            foreach (long id in lista)
+            
+            for (int i = 0; i<lista.Count;i++)
             {
-                if (statement.Length > 0)
+                long id = lista.ElementAt(i);
+                statement += "OBJECTID=" + id;
+                if (i < lista.Count-1)
                 {
                     statement += " OR ";
                 }
-                var filter = new QueryFilter();
-                statement += "OBJECTID=" + id;
-                filter.WhereClause = "OBJECTID=" + id;
-               
-                var cursor = selection.Search(filter);
-               
-                cursor.MoveNext();
-                var row = cursor.Current;
-                Dictionary<string, object> parcelDictionary = new Dictionary<string, object>();
-                var fields = row.GetFields();
-                int iterator = 0;
-                foreach (Field field in fields)
-                {   
-                    
-                    parcelDictionary.Add(field.Name, row.GetOriginalValue(iterator));
-                    iterator++;
+                var cursor = getRow(id, selection);
+                while (cursor.MoveNext())
+                {
+                    properties.parcels.Add(new ParcelModel(getData(cursor.Current)));
                 }
-                properties.parcels.Add(new ParcelModel(parcelDictionary));
+                
             }
             selectFilter.WhereClause = statement ;
             this.parcelQuery = selectFilter;
@@ -171,83 +162,99 @@ namespace WypisWyrys
             }
             return allIds;
         }
+
+        private RowCursor getRow(long id, Table selection)
+        {
+            var filter = new QueryFilter();
+
+            filter.WhereClause = "OBJECTID=" + id;
+
+            var cursor = selection.Search(filter);
+            return cursor;
+        }
+
         private void getMPZP(FeatureLayer layer, Geometry geometry,GeometryDimension dimension)
         {
             try
             {
                 var lista = getIdsFromEveryParcel(layer);
+                var selection = layer.GetTable();
                 foreach (long id in lista)
                 {
-                    var filter = new QueryFilter();
-                    filter.WhereClause = $"{"OBJECTID"}=" + id;
-                    var selection = layer.GetTable();
-                    var mpzp = selection.Search(filter);
-                    mpzp.MoveNext();
-                    var mpzpRow = mpzp.Current;
-                    Dictionary<string, object> mpzpDictionary = new Dictionary<string, object>();
-                    var fields = mpzpRow.GetFields();
-                    int iterator = 0;
-                    var atachments = mpzpRow.GetAttachments();
-                    foreach (Attachment atach in atachments)
+                    var cursor = getRow(id, selection);
+                    while (cursor.MoveNext())
                     {
-                        var memoryStream = atach.GetData();
-                        var imageByte = memoryStream.ToArray();
-                        BitmapImage bitImage = new BitmapImage();
-                        bitImage.BeginInit();
-                        bitImage.StreamSource = memoryStream;
-                        bitImage.EndInit();
-
-                        mpzpDictionary.Add("legend", imageByte);
-                        mpzpDictionary.Add("legendSize", new Size(bitImage.PixelWidth, bitImage.PixelHeight));
-                        memoryStream.Close();
+                        properties.mpzpModels.Add(new MPZPModel(getData(cursor.Current)));
                     }
-                    foreach (Field field in fields)
-                    {
-                        mpzpDictionary.Add(field.Name, mpzpRow.GetOriginalValue(iterator));
-                        iterator++;
-                    }
-                    properties.mpzpModels.Add(new MPZPModel(mpzpDictionary));
                 }
-            }
+            }            
             catch (Exception e)
             {
-                Debug.WriteLine(e.StackTrace);
+                MessageBox.Show("Nie udało się pobrać danych o MPZP");
             }
+        }
+
+        public Dictionary<string, object> getAttachments(IReadOnlyList<Attachment> attachments)
+        {
+            Dictionary<string, object> mpzpDictionary = new Dictionary<string, object>();
+            foreach (Attachment atach in attachments)
+            {
+                var memoryStream = atach.GetData();
+                var imageByte = memoryStream.ToArray();
+                BitmapImage bitImage = new BitmapImage();
+                bitImage.BeginInit();
+                bitImage.StreamSource = memoryStream;
+                bitImage.EndInit();
+
+                mpzpDictionary.Add("legend", imageByte);
+                mpzpDictionary.Add("legendSize", new Size(bitImage.PixelWidth, bitImage.PixelHeight));
+                memoryStream.Close();
+            }
+            return mpzpDictionary;
         }
         private void getResolution(FeatureLayer layer, Geometry geometry, GeometryDimension dimension)
         {
-            var resolutionList = this.getIdsFromEveryParcel(layer);
-            foreach (long id in resolutionList)
+            try
             {
+                var resolutionList = this.getIdsFromEveryParcel(layer);
                 var selection = layer.GetTable();
-                QueryFilter filter = new QueryFilter();
-                filter.WhereClause = "OBJECTID=" + id;
-                var cursor = selection.Search(filter);
-                while (cursor.MoveNext())
+                foreach (long id in resolutionList)
                 {
-                    var resolutionRow = cursor.Current;
-                    Dictionary<string, object> resolutionDictionary = new Dictionary<string, object>();
-                    var fields = resolutionRow.GetFields();
-                    int iterator = 0;
-                    foreach (Field field in fields)
+                    var cursor = getRow(id, selection);
+                    while (cursor.MoveNext())
                     {
-                        resolutionDictionary.Add(field.Name, resolutionRow.GetOriginalValue(iterator));
-                        iterator++;
+                        
+                        properties.resolutions.Add(new ResolutionModel(getData(cursor.Current)));
                     }
-                    properties.resolutions.Add(new ResolutionModel(resolutionDictionary));
                 }
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Nie udało się pobrać danych o wydzieleniach");
             }
         }
 
+        private Dictionary<string, object> getData(Row cursor)
+        {
+            Dictionary<string, object> dictionary = new Dictionary<string, object>();
+            var fields = cursor.GetFields();
+            for (int iterator = 0; iterator < fields.Count; iterator++)
+            {
+                dictionary.Add(fields.ElementAt(iterator).Name, cursor.GetOriginalValue(iterator));
+            }
+            return dictionary;
+        }
+        int i = 0;
         private void getPrecints(FeatureLayer layer, Geometry geometry, GeometryDimension dimension)
         {
             var precintsList = this.getIntersectedIds(geometry, layer, dimension);
+            var selection = layer.GetTable();
             foreach (long id in precintsList)
             {
                 var filter = new QueryFilter();
                 string idField = config.getConfig("Obręby", "areaId");
                 filter.WhereClause = idField + "=" + id;
-                var selection = layer.GetTable();
+                
                 var wydzielenia = selection.Search(filter);
                 while (wydzielenia.MoveNext())
                 {
@@ -263,9 +270,7 @@ namespace WypisWyrys
                     properties.precints.Add(new PrecintModel(precintDictionary));
                 }
             }
-            
         }
-        string geometryString = "";
         public List<long> getIntersectedIds(Geometry geometry, FeatureLayer layer, GeometryDimension dimension)
         {
             List<long> intersectedObjects = new List<long>();

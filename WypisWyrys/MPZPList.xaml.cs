@@ -81,6 +81,7 @@ namespace WypisWyrys
 
         public void chooseMPZP(object sender, RoutedEventArgs args) 
         {
+            acceptedProperties = new NecessaryProperties();
             Button source = (Button)sender;
             WrapPanel panel = (WrapPanel)source.Parent;
             string text = "";
@@ -100,8 +101,6 @@ namespace WypisWyrys
                 return (text.Equals(result.ToString()));
             }).ToList();
             getIntersectedData();
-            acceptedProperties.resolutions = properties.resolutions;
-            acceptedProperties.precints = properties.precints;
             nextPane();           
         }
 
@@ -134,12 +133,48 @@ namespace WypisWyrys
                     {
                         object parcelsShape = null;
                         parcel.parcel.TryGetValue("Shape", out parcelsShape);
-                        return (!GeometryEngine.Instance.Intersection((ArcGIS.Core.Geometry.Polygon)result,
-                            (ArcGIS.Core.Geometry.Polygon)parcelsShape, GeometryDimension.esriGeometry2Dimension).IsEmpty);
-                    }).ToList();
+                        
+                        if ((!GeometryEngine.Instance.Intersection((ArcGIS.Core.Geometry.Polygon)result,
+                            (ArcGIS.Core.Geometry.Polygon)parcelsShape, GeometryDimension.esriGeometry2Dimension).IsEmpty))
+                        {
+                            getResolutionData(parcel);
+                            getPrecintsData(parcel);                    
+                            return true;
+                        }
+                        return false;
+                    }).ToList(); 
+
                 });
                 t.Wait();
             }
+        }
+        public void getResolutionData(ParcelModel parcel)
+        {
+            parcel.resolutions = properties.resolutions.Where((resolution) =>
+            {
+                object resolutionShape;
+                resolution.resolution.TryGetValue("Shape", out resolutionShape);
+                object parcelShape;
+                parcel.parcel.TryGetValue("Shape", out parcelShape);
+                ArcGIS.Core.Geometry.Polygon resolutionPolygon = (ArcGIS.Core.Geometry.Polygon)resolutionShape;
+                ArcGIS.Core.Geometry.Polygon parcelPolygon = (ArcGIS.Core.Geometry.Polygon)parcelShape;
+                ArcGIS.Core.Geometry.Geometry geometry = GeometryEngine.Instance.Intersection(resolutionPolygon, parcelPolygon, GeometryDimension.esriGeometry2Dimension);
+                return (!geometry.IsEmpty);
+            }).ToList();
+        }
+        public void getPrecintsData(ParcelModel parcel)
+        {
+            parcel.precints = properties.precints.Where((precint) =>
+            {
+                object precintShape;
+                precint.precint.TryGetValue("Shape", out precintShape);
+                object parcelShape;
+                parcel.parcel.TryGetValue("Shape", out parcelShape);
+                ArcGIS.Core.Geometry.Polygon precintPolygon = (ArcGIS.Core.Geometry.Polygon)precintShape;
+                ArcGIS.Core.Geometry.Polygon parcelPolygon = (ArcGIS.Core.Geometry.Polygon)parcelShape;
+                ArcGIS.Core.Geometry.Geometry geometry = GeometryEngine.Instance.Intersection(precintPolygon, parcelPolygon, GeometryDimension.esriGeometry2Dimension);
+                return (!geometry.IsEmpty);
+            }).ToList();
         }
     }
 }

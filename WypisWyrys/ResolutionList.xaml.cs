@@ -64,7 +64,7 @@ namespace WypisWyrys
                 var models = propertiesAccepted.resolutions.Where((resolution) =>
                 {
                     object resolutionShape;
-                    propertiesAccepted.resolutions.First().resolution.TryGetValue("Shape", out resolutionShape);
+                    resolution.resolution.TryGetValue("Shape", out resolutionShape);
                     object parcelShape;
                     currentParcel.parcel.TryGetValue("Shape", out parcelShape);
                     ArcGIS.Core.Geometry.Polygon resolutionPolygon = (ArcGIS.Core.Geometry.Polygon)resolutionShape;
@@ -83,7 +83,6 @@ namespace WypisWyrys
             for (int i = 0; i < propertiesAccepted.parcels.Count; i++)
             {
                 createRow(propertiesAccepted.parcels.ElementAt(i), i);
-                addResolutionsToParcel(propertiesAccepted.parcels.ElementAt(i));
             }
         }
         string parcelIdField;

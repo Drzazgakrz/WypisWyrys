@@ -148,6 +148,34 @@ namespace WypisWyrys
             file = file.Remove(place, 6).Insert(place, "\\phpar0");
             return file;
         }
+        public void getDistinctPrecints()
+        {
+            foreach(ParcelModel parcel in acceptedProperties.parcels)
+            {
+                foreach(PrecintModel precint in parcel.precints)
+                {
+                    if (!acceptedProperties.precints.Contains(precint))
+                    {
+                        acceptedProperties.precints.Add(precint);
+                    }
+                }
+            }
+        }
+
+
+        public void getDistinctResolutions()
+        {
+            foreach (ParcelModel parcel in acceptedProperties.parcels)
+            {
+                foreach (ResolutionModel resolution in parcel.resolutions)
+                {
+                    if (!acceptedProperties.resolutions.Contains(resolution))
+                    {
+                        acceptedProperties.resolutions.Add(resolution);
+                    }
+                }
+            }
+        }
         public string getParcelsData(string file)
         {
             int index1 = file.IndexOf("[[each obreb]]") + 14;
@@ -155,6 +183,7 @@ namespace WypisWyrys
             string model = file.Substring(index1, index2 - index1);
             string parcelsString = "";
             object result = null;
+            getDistinctPrecints();
             foreach (PrecintModel precint in acceptedProperties.precints)
             {
                 string name = config.getConfig("Obręby", "areaName");
@@ -187,6 +216,7 @@ namespace WypisWyrys
              string model = file.Substring(index1, index2 - index1);
              string assumeSymbol = "";
              object result;
+            getDistinctResolutions();
              foreach (ResolutionModel resolution in acceptedProperties.resolutions)
              {
                  var parcelsInResolution = acceptedProperties.parcels.Where((parcel) =>
@@ -284,7 +314,7 @@ namespace WypisWyrys
                 string parcelsIdField = config.getConfig("Działki", "parcelsId");
                 string areaNameField = config.getConfig("Obręby", "areaName");
                 object areaName = null;
-                var area = acceptedProperties.precints.Where((precint) =>
+                var area = parcel.precints.Where((precint) =>
                 {
                     object resultShape = null;
                     precint.precint.TryGetValue("Shape", out resultShape);
@@ -315,20 +345,23 @@ namespace WypisWyrys
             MPZPModel mpzp = acceptedProperties.mpzpModels.First();
             Object legend = null;
             mpzp.mpzp.TryGetValue("legend", out legend);
+            if (legend != null) {
+                Object legendSize = null;
+                mpzp.mpzp.TryGetValue("legendSize", out legendSize);
 
-            Object legendSize = null;
-            mpzp.mpzp.TryGetValue("legendSize", out legendSize);
+                string str = BitConverter.ToString((byte[])legend, 0).Replace("-", string.Empty);
 
-            string str = BitConverter.ToString((byte[])legend, 0).Replace("-", string.Empty);
-        
-            string rtfImageStr = @"{\pict\pngblip\picw" +
-    ((System.Drawing.Size)legendSize).Width + @"\pich" + (((System.Drawing.Size)legendSize).Height * 10) +
-    @"\picwgoal" + (((System.Drawing.Size)legendSize).Width * 10) + @"\pichgoal" + (((System.Drawing.Size)legendSize).Height * 10) +
-    str + "}";
+                string rtfImageStr = @"{\pict\pngblip\picw" +
+        ((System.Drawing.Size)legendSize).Width + @"\pich" + (((System.Drawing.Size)legendSize).Height * 10) +
+        @"\picwgoal" + (((System.Drawing.Size)legendSize).Width * 10) + @"\pichgoal" + (((System.Drawing.Size)legendSize).Height * 10) +
+        str + "}";
+            
             while(file.IndexOf("[[legenda_rastrowa]]")!= file.LastIndexOf("[[legenda_rastrowa]]")){
                 file = file.Remove(file.LastIndexOf("[[legenda_rastrowa]]"), 20);
             }
+            
             file = file.Replace("[[legenda_rastrowa]]", rtfImageStr);
+            }
             file = convertMapToString(file);
             file = removeStrings(file);
             return file;            
